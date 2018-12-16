@@ -48,7 +48,7 @@ class SocialGeolocationSettings extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Google Maps API key'),
       '#description' => $this->t('Google requires users to use a valid API key. Using the <a href="https://console.developers.google.com/apis">Google API Manager</a>, you can enable the <em>Google Maps JavaScript API</em>. That will create (or reuse) a <em>Browser key</em> which you can paste here.'),
-      '#default_value' => $geoconfig->get('geolocation_google_map_api_key'),
+      '#default_value' => $geoconfig->get('google_map_api_key'),
       '#states' => array(
         'visible' => array(
           ':input[name="geolocation_provider"]' => array('value' => 'google'),
@@ -71,11 +71,18 @@ class SocialGeolocationSettings extends ConfigFormBase {
 
     // If users chooses Geolocation to be Google API we need to ensure
     // API key is filled in and we can store it in the Geolocation module
-    // settings.
+    // settings as well as the Geocoder Settings.
+    $api_key_or_not = '';
     if ($form_state->getValue('geolocation_provider') === 'google') {
-      $config = $this->configFactory()->getEditable('geolocation.settings');
-      $config->set('google_map_api_key', $form_state->getValue('geolocation_google_map_api_key'));
+      $api_key_or_not = $form_state->getValue('geolocation_google_map_api_key');
     }
+
+    $config = $this->configFactory()->getEditable('geolocation.settings');
+    $config->set('google_map_api_key', $api_key_or_not)->save();
+    $config = $this->configFactory()->getEditable('geocoder.settings');
+    $configData = $config->getRawData();
+    $configData['plugins_options']['googlemaps']['apikey'] = $api_key_or_not;
+    $config->set('plugins_options', $configData['plugins_options'])->save();
   }
 
 }
