@@ -1,0 +1,5 @@
+services:
+  social_geolocation.override:
+    class: \Drupal\social_geolocation\SocialGeolocationConfigOverride
+    tags:
+      - {name: config.factory.override, priority: 5}
