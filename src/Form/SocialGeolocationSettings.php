@@ -44,17 +44,17 @@ class SocialGeolocationSettings extends ConfigFormBase {
     ];
 
     $geoconfig = $this->configFactory()->getEditable('geolocation.settings');
-    $form['geolocation_google_map_api_key'] = array(
+    $form['geolocation_google_map_api_key'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Google Maps API key'),
       '#description' => $this->t('Google requires users to use a valid API key. Using the <a href="https://console.developers.google.com/apis">Google API Manager</a>, you can enable the <em>Google Maps JavaScript API</em>. That will create (or reuse) a <em>Browser key</em> which you can paste here.'),
       '#default_value' => $geoconfig->get('google_map_api_key'),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="geolocation_provider"]' => array('value' => 'google'),
-        ),
-      ),
-    );
+      '#states' => [
+        'visible' => [
+          ':input[name="geolocation_provider"]' => ['value' => 'google'],
+        ],
+      ],
+    ];
 
     return parent::buildForm($form, $form_state);
   }

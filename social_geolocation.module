@@ -177,20 +177,22 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
 
       unset($form['proximity']['#description']);
       unset($form['geolocation_geocoder_google_geocoding_api']['#description']);
-      $form['geolocation_geocoder_google_geocoding_api']['#title'] = t('City');
-      $form['proximity']['#title'] = t('Distance to the city (km)');
-
-      $form['location_details'] = [
-        '#type' => 'fieldset',
-        '#title' => t('Location range'),
-      ];
-
-      $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
-      $form['location_details']['proximity'] = $form['proximity'];
-      unset($form['proximity']);
-      unset($form['geolocation_geocoder_google_geocoding_api']);
       break;
   }
+
+  // Format to new GPI look and feel.
+  $form['geolocation_geocoder_google_geocoding_api']['#title'] = t('City');
+  $form['proximity']['#title'] = t('Distance to the city (km)');
+
+  $form['location_details'] = [
+    '#prefix' => '<span class="control-label">' . t('Location details') . '</span>',
+    '#type' => 'fieldset',
+  ];
+
+  $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
+  $form['location_details']['proximity'] = $form['proximity'];
+  unset($form['proximity']);
+  unset($form['geolocation_geocoder_google_geocoding_api']);
 
   $form['#validate'][] = '_social_geolocation_form_views_exposed_form_validate';
 }
