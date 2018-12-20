@@ -9,7 +9,7 @@ use Drupal\Core\Config\StorageInterface;
 /**
  * Example configuration override.
  */
-class SocialGeolocationConfigOverride implements ConfigFactoryOverrideInterface {
+class SocialGeolocationUserAdminPeopleConfigOverride implements ConfigFactoryOverrideInterface {
 
   /**
    * Returns config overrides.

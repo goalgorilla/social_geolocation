@@ -5,13 +5,10 @@
  * The Social Geolocation module.
  */
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Locale\CountryManager;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\block\Entity\Block;
 use Drupal\geolocation\GeolocationCore;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Query\QueryInterface;
@@ -53,32 +50,6 @@ function _social_geolocation_address_to_string(array $address) {
 }
 
 /**
- * Implements hook_block_access().
- *
- * Hide proximity filter if Google Maps API key is not set.
- */
-function social_geolocation_block_access(Block $block, $operation, AccountInterface $account) {
-  $proximity_forms = [
-    'views_exposed_filter_block:search_all-page',
-    'views_exposed_filter_block:search_content-page',
-    'views_exposed_filter_block:search_users-page',
-    'views_exposed_filter_block:search_groups-page',
-    'views_exposed_filter_block:user_admin_people-page',
-    'views_exposed_filter_block:user_admin_people-page-1',
-  ];
-
-  if ($operation == 'view' && in_array($block->getPluginId(), $proximity_forms)) {
-    $config = \Drupal::config('geolocation.settings');
-    $apikey = $config->get('google_map_api_key');
-
-    return AccessResult::forbiddenIf(empty($apikey))
-      ->addCacheableDependency($block);
-  }
-
-  return AccessResult::neutral();
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Enhance the Views exposed filter blocks forms.
@@ -100,6 +71,13 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   ];
 
   if (!in_array($form['#id'], $filter_forms)) {
+    return;
+  }
+
+  // Only if the current user has the filter permission for admin/people
+  // we will show him the exposed filter.
+  if (!\Drupal::currentUser()->hasPermission('filter admin people geolocation')
+    && strpos($form['#id'], 'views-exposed-form-user-admin-people-page') !== FALSE) {
     return;
   }
 
@@ -184,11 +162,32 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   $form['geolocation_geocoder_google_geocoding_api']['#title'] = t('City');
   $form['proximity']['#title'] = t('Distance to the city (km)');
 
+  // Render it last.
   $form['location_details'] = [
-    '#prefix' => '<span class="control-label">' . t('Location details') . '</span>',
+    '#field_prefix' => '<span class="control-label">' . t('Location details') . '</span>',
     '#type' => 'fieldset',
+    "#weight" => 50,
   ];
 
+  // Format admin people.
+  if (strpos($form['#id'], 'views-exposed-form-user-admin-people-page') !== FALSE) {
+    unset($form['location_details']['#prefix']);
+    $form['location_details']['#title'] = t('Location details');
+    $form['geolocation_geocoder_google_geocoding_api']['#size'] = 30;
+  }
+
+  if (strpos($form['#id'], 'views-exposed-form-search-content-page') !== FALSE ||
+    strpos($form['#id'], 'views-exposed-form-search-content-page-no-value') !== FALSE ) {
+    $form['location_details']['#states'] = [
+      'visible' => [
+        ':input[name=type]' => [
+          'value' => 'event',
+        ],
+      ],
+    ];
+  }
+
+  $form['geolocation_geocoder_google_geocoding_api']['#placeholder'] = t('City, Country');
   $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
   $form['location_details']['proximity'] = $form['proximity'];
   unset($form['proximity']);
