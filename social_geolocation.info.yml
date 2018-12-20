@@ -8,7 +8,7 @@ dependencies:
   - geocoder:geocoder_address
   - geocoder:geocoder_field
   - geolocation:geolocation
-  - social_event:social_event
-  - social_group:social_group
-  - social_profile:social_profile
+  - social:social_event
+  - social:social_group
+  - social:social_profile
 package: Social
