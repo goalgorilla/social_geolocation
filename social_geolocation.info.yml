@@ -11,4 +11,4 @@ dependencies:
   - social_event:social_event
   - social_group:social_group
   - social_profile:social_profile
-package: Custom
+package: Social

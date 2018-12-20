@@ -2,8 +2,14 @@ This module provides the ability to convert address field values into a set of
 coordinates that are stored with the entity. This enables the content to be 
 found in search based on location.
 
+## OpenStreetMap
+By default this module uses the OpenStreetMap API. It is not needed to enter an API key. 
+
+You can find the usage policy here:
+https://wiki.openstreetmap.org/wiki/API_usage_policy
+
 ## Google Maps API Key
-This module uses the Google Maps API to transform address strings into 
+Optionally you can use the Google Maps API to transform address strings into 
 lattitude/longtitude pairs. For all server side requests no Google Maps API
 key is needed, however, rate limiting may apply. For the client side requests
 which include the proximity filter and map blocks, a valid maps API key must

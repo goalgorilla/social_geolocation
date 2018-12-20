@@ -27,25 +27,25 @@ function social_geolocation_install() {
     /* @var Drupal\search_api\Entity\Index $index */
     $index = Index::load($index);
     if (!$index instanceof Index) {
-      \Drupal::logger('social_tagging')->info('Invalid search index');
+      \Drupal::logger('social_geolocation')->info('Invalid search index');
       return;
     }
-    \Drupal::logger('social_tagging')->info('Loaded search index');
+    \Drupal::logger('social_geolocation')->info('Loaded search index');
 
     // If currently enabled we will first disabled and enable the index.
     if ($index !== NULL && $index->status()) {
-      \Drupal::logger('social_tagging')->info('Search index exists');
+      \Drupal::logger('social_geolocation')->info('Search index exists');
 
       // Elevate permissions so we can index *all* the items.
       $accountSwitcher = Drupal::service('account_switcher');
       $account = User::load(1);
       $accountSwitcher->switchTo($account);
 
-      // Disable and enable the index so the tagging field is properly added.
+      // Disable and enable the index so the social_geolocation field is properly added.
       $index->disable()->save();
-      \Drupal::logger('social_tagging')->info('Search index disabled');
+      \Drupal::logger('social_geolocation')->info('Search index disabled');
       $index->enable()->save();
-      \Drupal::logger('social_tagging')->info('Search index enabled');
+      \Drupal::logger('social_geolocation')->info('Search index enabled');
 
       // Restore user account.
       $accountSwitcher->switchBack();
@@ -55,75 +55,15 @@ function social_geolocation_install() {
   // Enable permissions.
   _social_geolocation_set_permissions();
 
-  // Enable default value for config.
   // Make sure for new installations we choose the free OSM version.
   \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
     ->set('geolocation_provider', 'openstreetmaps')->save();
 }
 
 /**
- * Reindex content.
- */
-function social_geolocation_update_8001(&$sandbox) {
-  if (!isset($sandbox['limit'])) {
-    $sandbox['indexes'] = [
-      'social_all',
-      'social_content',
-      'social_groups',
-      'social_users',
-    ];
-
-    $sandbox['current'] = 0;
-    $sandbox['first'] = TRUE;
-  }
-
-  $index = Index::load($sandbox['indexes'][$sandbox['current']]);
-  $tracker = $index->getTrackerInstance();
-
-  if ($sandbox['first']) {
-    if (!($sandbox['total'] = $tracker->getTotalItemsCount())) {
-      return;
-    }
-
-    $index->clear();
-
-    $sandbox['limit'] = $sandbox['total'] > 50 ? 50 : $sandbox['total'];
-    $sandbox['first'] = FALSE;
-  }
-
-  $index->indexItems($sandbox['limit']);
-
-  $item_progress = $tracker->getIndexedItemsCount() / $sandbox['total'];
-
-  if ($item_progress === 1) {
-    $sandbox['current']++;
-    $sandbox['first'] = TRUE;
-  }
-
-  $index_progress = $sandbox['current'] / count($sandbox['indexes']);
-
-  $sandbox['#finished'] = $item_progress * $index_progress;
-}
-
-/**
- * Set defaults for existing customers.
+ * This hook won't do anything and is needed only to make sure next one is 8003.
  */
 function social_geolocation_update_8002(&$sandbox) {
-  $modules = [
-    'geocoder',
-    'geocoder_address',
-    'geocoder_field',
-  ];
-
-  \Drupal::service('module_installer')->install($modules);
-
-  // Enable permissions.
-  _social_geolocation_set_permissions();
-
-  // In update hook we make sure Google is our default provider. Since existing
-  // customers already had Geolocation enabled and that ships only with Google.
-  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
-    ->set('geolocation_provider', 'google')->save();
 }
 
 /**
@@ -140,7 +80,6 @@ function _social_geolocation_set_permissions() {
 
     if ($role->id() === 'sitemanager') {
       user_role_grant_permissions('sitemanager', ['set social geolocation settings']);
-      user_role_grant_permissions('sitemanager', ['filter admin people geolocation']);
     }
   }
 }

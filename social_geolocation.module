@@ -8,46 +8,9 @@
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Locale\CountryManager;
 use Drupal\geolocation\GeolocationCore;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Query\QueryInterface;
-
-/**
- * Converts an address field value to a string for the Google Maps API.
- *
- * Uses specific entries from an address field to create a Google Maps API
- * compatible string. This avoids erroneous fields like langcode messing up the
- * string.
- *
- * @param array $address
- *   The address field value array.
- *
- * @return string
- *   The string that can be sent to the Google Maps API.
- */
-function _social_geolocation_address_to_string(array $address) {
-  $countries = CountryManager::getStandardList();
-
-  $country = $address['country_code'];
-
-  // If we have a valid country code we translate it to the full country name.
-  // This is needed to ensure geocoding of countries without address works.
-  if (isset($countries[$country])) {
-    $country = $countries[$country];
-  }
-
-  $formatted_address = [
-    $country,
-    str_replace($address['country_code'] . '-', '', $address['administrative_area']),
-    $address['locality'],
-    $address['dependent_locality'],
-    $address['postal_code'],
-    $address['address_line1'],
-  ];
-
-  return implode(', ', array_filter($formatted_address));
-}
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -64,24 +27,12 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
     'views-exposed-form-search-users-page-no-value',
     'views-exposed-form-search-groups-page',
     'views-exposed-form-search-groups-page-no-value',
-    'views-exposed-form-user-admin-people-page',
-    'views-exposed-form-user-admin-people-page-no-value',
     'views-exposed-form-user-admin-people-page-1',
-    'views-exposed-form-user-admin-people-page-1-no-value',
   ];
 
   if (!in_array($form['#id'], $filter_forms)) {
     return;
   }
-
-  // Only if the current user has the filter permission for admin/people
-  // we will show him the exposed filter.
-  if (!\Drupal::currentUser()->hasPermission('filter admin people geolocation')
-    && strpos($form['#id'], 'views-exposed-form-user-admin-people-page') !== FALSE) {
-    return;
-  }
-
-  $form['actions']['reset']['#access'] = TRUE;
 
   /** @var \Drupal\geolocation\GeocoderInterface $geocoder_plugin */
   $provider = \Drupal::service('plugin.manager.geocoder.provider')->getPlugins();
@@ -89,25 +40,36 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
     return;
   }
 
-  $form['proximity'] = [
+  $form['location_details'] = [
+    '#title' => t('Location range'),
+    '#type' => 'fieldset',
+    "#weight" => 50,
+  ];
+  $form['location_details']['proximity'] = [
     '#type' => 'number',
-    '#title' => t('Distance (in kilometers)'),
+    '#title' => t('Distance (km)'),
     '#description' => t('Recommended range from 10 to 1000.'),
     '#min' => 0,
     '#max' => 10000,
+    '#weight' => 10,
   ];
 
   $identifier = 'proximity';
 
+  // Get the geocoderplugins.
   $geocoder_plugin = \Drupal::service('geolocation.core')->getGeocoderManager()
     ->getGeocoder('google_geocoding_api');
   if (!empty($geocoder_plugin)) {
     $geocoder_plugin->formAttachGeocoder($form, $identifier);
   }
 
+  $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
+  unset($form['geolocation_geocoder_google_geocoding_api']);
+  $form['location_details']['geolocation_geocoder_google_geocoding_api']['#title'] = t('Location');
+  $form['location_details']['geolocation_geocoder_google_geocoding_api']['#placeholder'] = t('City, Country');
+
   $form[$identifier . '-lat']['#type'] = 'hidden';
   $form[$identifier . '-lng']['#type'] = 'hidden';
-  $form['geolocation_geocoder_google_geocoding_api']['#title'] = t('Location');
 
   $form = array_merge_recursive($form, [
     '#attached' => [
@@ -131,67 +93,28 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   ]);
 
   switch ($form['#id']) {
-    case 'views-exposed-form-search-users-page':
-      if (!empty($form['profile_tag'])) {
-        $form['profile_tag']['#type'] = 'checkboxes';
-      }
-
-      if (empty($form['profile_tag']['#options'])) {
-        unset($form['profile_tag']);
-      }
-      break;
-
-    case 'views-exposed-form-search-all-page':
-    case 'views-exposed-form-search-all-page-no-value':
-    case 'views-exposed-form-search-groups-page':
-    case 'views-exposed-form-search-groups-page-no-value':
-      unset($form['label']);
-      break;
 
     case 'views-exposed-form-user-admin-people-page-1':
       $form['field_profile_geolocation_proximity']['#type'] = 'hidden';
       $form['field_profile_geolocation_proximity-lat']['#type'] = 'hidden';
       $form['field_profile_geolocation_proximity-lng']['#type'] = 'hidden';
+      $form['location_details']['geolocation_geocoder_google_geocoding_api']['#size'] = 30;
 
-      unset($form['proximity']['#description']);
-      unset($form['geolocation_geocoder_google_geocoding_api']['#description']);
+      unset($form['location_details']['proximity']['#description']);
+      unset($form['location_details']['geolocation_geocoder_google_geocoding_api']['#description']);
+      break;
+
+    case 'views-exposed-form-search-content-page':
+    case 'views-exposed-form-search-content-page-no-value':
+      $form['location_details']['#states'] = [
+        'visible' => [
+          ':input[name=type]' => [
+            'value' => 'event',
+          ],
+        ],
+      ];
       break;
   }
-
-  // Format to new GPI look and feel.
-  $form['geolocation_geocoder_google_geocoding_api']['#title'] = t('City');
-  $form['proximity']['#title'] = t('Distance to the city (km)');
-
-  // Render it last.
-  $form['location_details'] = [
-    '#field_prefix' => '<span class="control-label">' . t('Location details') . '</span>',
-    '#type' => 'fieldset',
-    "#weight" => 50,
-  ];
-
-  // Format admin people.
-  if (strpos($form['#id'], 'views-exposed-form-user-admin-people-page') !== FALSE) {
-    unset($form['location_details']['#prefix']);
-    $form['location_details']['#title'] = t('Location details');
-    $form['geolocation_geocoder_google_geocoding_api']['#size'] = 30;
-  }
-
-  if (strpos($form['#id'], 'views-exposed-form-search-content-page') !== FALSE ||
-    strpos($form['#id'], 'views-exposed-form-search-content-page-no-value') !== FALSE ) {
-    $form['location_details']['#states'] = [
-      'visible' => [
-        ':input[name=type]' => [
-          'value' => 'event',
-        ],
-      ],
-    ];
-  }
-
-  $form['geolocation_geocoder_google_geocoding_api']['#placeholder'] = t('City, Country');
-  $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
-  $form['location_details']['proximity'] = $form['proximity'];
-  unset($form['proximity']);
-  unset($form['geolocation_geocoder_google_geocoding_api']);
 
   $form['#validate'][] = '_social_geolocation_form_views_exposed_form_validate';
 }
@@ -207,6 +130,7 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
     return;
   }
 
+  // Pass the arguments to be able to get values in search_api_db_query_alter.
   $args = \Drupal::request()->query;
 
   if (empty($form_state->getValue('proximity'))) {
@@ -245,24 +169,24 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
  * Convert address to geolocation values.
  *
  * @param string $address
- *   The address that can be given to the GoogleGelocationAPI::geocode method.
+ *   The address that can be given to the Geocoder::geocode method.
  *
  * @return array
  *   An array with a status field and lat/lng values if a geolocation was found.
  */
 function _social_geolocation_geocode_address($address) {
-  // If there's no address to geocode or we have no geocoder service
-  // then there's nothing to do.
+
   if (empty($address) || !\Drupal::hasService('plugin.manager.geocoder.provider')) {
     return [];
   }
 
   /** @var \Drupal\geocoder\ProviderPluginManager $provider */
-  $provider = \Drupal::service('plugin.manager.geocoder.provider')->getPlugins();
+  $provider = \Drupal::service('plugin.manager.geocoder.provider');
+  $provider_plugins = $provider->getPlugins();
   /** @var \Drupal\geocoder\Geocoder $geocoder */
   $geocoder = \Drupal::service('geocoder');
 
-  $result = $geocoder->geocode($address, array_keys($provider));
+  $result = $geocoder->geocode($address, array_keys($provider_plugins));
 
   if (empty($result->first())) {
     return [];
@@ -297,7 +221,18 @@ function social_geolocation_block_view_views_exposed_filter_block_alter(array &$
 /**
  * Implements hook_search_api_db_query_alter().
  */
-function social_geolocation_search_api_db_query_alter(SelectInterface &$db_query, QueryInterface $query) {
+function social_geolocation_search_api_db_query_alter(SelectInterface $db_query, QueryInterface $query) {
+
+  // If there are no arguments for proximity there is nothing to do.
+  if (empty($args = \Drupal::request()->query->all())) {
+    return;
+  }
+  foreach (['proximity', 'proximity-lat', 'proximity-lng'] as $key) {
+    if (empty($args[$key])) {
+      return;
+    }
+  }
+
   $tables = $db_query->getTables();
   $index = $query->getIndex()->id();
   $table = 'search_api_db_' . $index;
@@ -321,9 +256,7 @@ function social_geolocation_search_api_db_query_alter(SelectInterface &$db_query
     }
   }
 
-  $indexes = ['social_all', 'social_groups'];
-
-  if (\Drupal::currentUser()->isAnonymous() && in_array($index, $indexes)) {
+  if (\Drupal::currentUser()->isAnonymous()) {
     $group_types = GroupType::loadMultiple();
     $group_type_ids = [];
 
@@ -334,7 +267,7 @@ function social_geolocation_search_api_db_query_alter(SelectInterface &$db_query
       }
     }
 
-    if ($index == 'social_all') {
+    if ($index === 'social_all') {
       $source_field = $alias . '.search_api_datasource';
       $entity_type = 'entity:group';
 
@@ -353,27 +286,14 @@ function social_geolocation_search_api_db_query_alter(SelectInterface &$db_query
         $db_query->condition($source_field, $entity_type, '<>');
       }
     }
-    else {
-      if (!empty($group_type_ids)) {
-        foreach ($group_type_ids as &$group_type_id) {
-          $group_type_id = str_replace('_', '', $group_type_id);
-        }
 
+    if ($index === 'social_groups') {
+      if (!empty($group_type_ids)) {
         $db_query->condition("$alias.type", $group_type_ids, 'IN');
       }
       else {
         return;
       }
-    }
-  }
-
-  if (empty($args = \Drupal::request()->query->all())) {
-    return;
-  }
-
-  foreach (['proximity', 'proximity-lat', 'proximity-lng'] as $key) {
-    if (empty($args[$key])) {
-      return;
     }
   }
 
@@ -390,8 +310,7 @@ function social_geolocation_search_api_db_query_alter(SelectInterface &$db_query
     'social_groups' => 'group',
     'social_users' => 'profile',
   ];
-
-  if ($index == 'social_all') {
+  if ($index === 'social_all') {
     $entity_types = array_values($entity_types);
   }
   else {

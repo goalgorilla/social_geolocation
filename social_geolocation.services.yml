@@ -1,6 +1,7 @@
 services:
   social_geolocation.override:
     class: \Drupal\social_geolocation\SocialGeolocationUserAdminPeopleConfigOverride
+    arguments: ['@config.factory']
     tags:
       - {name: config.factory.override, priority: 5}
 
