@@ -5,7 +5,6 @@
   "homepage": "http://drupal.org/project/social_geolocation",
   "license": "GPL-2.0+",
   "require": {
-    "drupal/open_social": "~4.1",
     "drupal/geocoder": "~2.0",
     "drupal/geolocation": "~2.0"
   },
