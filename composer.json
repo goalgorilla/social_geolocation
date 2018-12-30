@@ -6,7 +6,7 @@
   "license": "GPL-2.0+",
   "require": {
     "drupal/geocoder": "~2.0",
-    "drupal/geolocation": "~1.11"
+    "drupal/geolocation": "2.x-dev"
   },
   "minimum-stability": "dev"
 }

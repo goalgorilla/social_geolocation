@@ -21,8 +21,8 @@ third_party_settings:
     hidden: true
     disabled: false
     plugins:
+    - nominatim
     - googlemaps
-    - openstreetmap
     dumper: geolocation
     delta_handling: s_to_m
     failure:

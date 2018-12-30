@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+  - views.view.social_geolocation_leaflet_commonmap_with_marker_icons
+  module:
+  - system
+  - views
+  theme:
+  - socialblue
+id: views_block_community_events_map
+theme: socialblue
+region: hero
+weight: 0
+provider: null
+plugin: 'views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_community_events_map'
+settings:
+  id: 'views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_community_events_map'
+  label: ''
+  provider: views
+  label_display: '0'
+  views_label: ''
+  items_per_page: none
+visibility:
+  request_path:
+    id: request_path
+    pages: /community-events
+    negate: false
+    context_mapping: {  }

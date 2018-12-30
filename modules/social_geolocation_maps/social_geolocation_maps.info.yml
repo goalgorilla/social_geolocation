@@ -1,0 +1,9 @@
+name: 'Social Geolocation Maps'
+description: 'Provides Map providers for showing Social Geolocation data in Views'
+type: module
+core: 8.x
+dependencies:
+  - social_geolocation
+  - geolocation:geolocation_leaflet
+  - social_event
+package: Social
