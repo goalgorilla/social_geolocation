@@ -59,8 +59,8 @@ class SocialGeolocationLandingPageConfigOverride implements ConfigFactoryOverrid
     }
 
     $config_overrides = [
-      'paragraph.block.field_block_reference_secondary',
-      'paragraph.block.field_block_reference',
+      'field.field.paragraph.block.field_block_reference_secondary',
+      'field.field.paragraph.block.field_block_reference',
     ];
 
     // Add landing page block to primary and secondary block options.

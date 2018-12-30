@@ -1,6 +1,6 @@
 services:
   social_geolocation_maps.override:
     class: \Drupal\social_geolocation_maps\SocialGeolocationLandingPageConfigOverride
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@module_handler']
     tags:
       - {name: config.factory.override, priority: 5}

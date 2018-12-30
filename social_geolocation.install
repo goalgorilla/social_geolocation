@@ -58,12 +58,35 @@ function social_geolocation_install() {
   // Make sure for new installations we choose the free OSM version.
   \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
     ->set('geolocation_provider', 'openstreetmaps')->save();
+
+  // Update the correct provider.
+  \Drupal::service('config.factory')->getEditable('geocoder.settings')
+    ->set('plugins_options', [
+      'nominatim' => [
+        'rooturl' => 'https://nominatim.openstreetmap.org/search/',
+        'locale' => '',
+      ],
+    ])->save();
 }
 
 /**
  * This hook won't do anything and is needed only to make sure next one is 8003.
  */
 function social_geolocation_update_8002(&$sandbox) {
+}
+
+/**
+ * This hook won't do anything and is needed only to make sure next one is 8003.
+ */
+function social_geolocation_update_8003(&$sandbox) {
+  // Update the correct provider.
+  \Drupal::service('config.factory')->getEditable('geocoder.settings')
+    ->set('plugins_options', [
+      'nominatim' => [
+        'rooturl' => 'https://nominatim.openstreetmap.org/search/',
+        'locale' => '',
+      ],
+    ])->save();
 }
 
 /**

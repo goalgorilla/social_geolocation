@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * The Social Geolocation Maps module.
+ */
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function social_geolocation_maps_field_widget_form_alter(&$element, \Drupal\Core\Form\FormStateInterface $form_state, $context) {
+  // Change title in form for adding Event Maps block on Landing pages.
+  if ($context['items']->getName() === 'field_block_reference' ||
+    $context['items']->getName() === 'field_block_reference_secondary') {
+    $name = $element['plugin_id']['#options']['Basic']['views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_upcomming_events_map'];
+
+    if ($name !== NULL) {
+      $element['plugin_id']['#options']['Basic']['views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_upcomming_events_map'] = t('Upcoming Events shown on a map');
+    }
+  }
+}
