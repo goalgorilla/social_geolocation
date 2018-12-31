@@ -11,7 +11,7 @@ dependencies:
 id: views_block_community_events_map
 theme: socialblue
 region: title
-weight: -26
+weight: 20
 provider: null
 plugin: 'views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_community_events_map'
 settings:

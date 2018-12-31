@@ -5,6 +5,9 @@
  * The Social Geolocation Maps module.
  */
 
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\views\ViewExecutable;
+
 /**
  * Implements hook_field_widget_form_alter().
  */
@@ -16,6 +19,41 @@ function social_geolocation_maps_field_widget_form_alter(&$element, \Drupal\Core
 
     if ($name !== NULL) {
       $element['plugin_id']['#options']['Basic']['views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_upcomming_events_map'] = t('Upcoming Events shown on a map');
+    }
+  }
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  // Due to issues with grouped filters I have to switch >= to < myself when
+  // user changes upcoming events to events in the past.
+  if ($view->id() == 'social_geolocation_leaflet_commonmap_with_marker_icons' &&
+    $view->getDisplay()->display['id'] == 'block_community_events_map') {
+    $query_args = $view->getRequest()->get('field_event_date_value');
+
+    // If there are query parameters set for the field_event_date_value we
+    // make sure the query reflects this before execution.
+    if ($query_args !== NULL) {
+      $exposed = $view->getExposedInput();
+      $filter = $exposed['field_event_date_value'];
+      if ($filter !== NULL) {
+        // Grab all the filter options.
+        $filter_options = $view->display_handler->getOption('filters');
+        // Based on the number from the Grouped value, grab the correct operator.
+        $operator = $filter_options['field_event_date_value']['group_info']['group_items'][$query_args]['operator'];
+
+        // Switch the operator field.
+        foreach ($query->where[1]['conditions'] as $key => $options) {
+          if ($operator !== NULL) {
+            if (strpos($options['field'], 'node__field_event_date.field_event_date_value') !== false) {
+              $field = "DATE_FORMAT(node__field_event_date.field_event_date_value, '%Y-%m-%d\T%H:%i:%s') " . $operator . " DATE_FORMAT('" . date('Y-m-d\TH:i:s') . "', '%Y-%m-%d\T%H:%i:%s')";
+              $query->where[1]['conditions'][$key]['field'] = $field;
+            }
+          }
+        }
+      }
     }
   }
 }
