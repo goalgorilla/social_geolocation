@@ -10,8 +10,8 @@ dependencies:
   - socialblue
 id: views_block_community_events_map
 theme: socialblue
-region: hero
-weight: 0
+region: title
+weight: -26
 provider: null
 plugin: 'views_block:social_geolocation_leaflet_commonmap_with_marker_icons-block_community_events_map'
 settings:
