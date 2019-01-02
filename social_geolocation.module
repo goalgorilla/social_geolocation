@@ -56,17 +56,24 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
 
   $identifier = 'proximity';
 
-  // Get the geocoderplugins.
-  $geocoder_plugin = \Drupal::service('geolocation.core')->getGeocoderManager()
-    ->getGeocoder('google_geocoding_api');
+  /** @var \Drupal\geolocation\GeocoderInterface $geocoder_plugin */
+  $geocoder_plugin =  \Drupal::service('plugin.manager.geolocation.geocoder')->getGeocoder(
+    'nominatim',
+    []
+  );
+
+  if (empty($geocoder_plugin)) {
+    return;
+  }
+
   if (!empty($geocoder_plugin)) {
     $geocoder_plugin->formAttachGeocoder($form, $identifier);
   }
 
-  $form['location_details']['geolocation_geocoder_google_geocoding_api'] = $form['geolocation_geocoder_google_geocoding_api'];
-  unset($form['geolocation_geocoder_google_geocoding_api']);
-  $form['location_details']['geolocation_geocoder_google_geocoding_api']['#title'] = t('Location');
-  $form['location_details']['geolocation_geocoder_google_geocoding_api']['#placeholder'] = t('City, Country');
+  $form['location_details']['geolocation_geocoder_address'] = $form['geolocation_geocoder_address'];
+  unset($form['geolocation_geocoder_address']);
+  $form['location_details']['geolocation_geocoder_address']['#title'] = t('Location');
+  $form['location_details']['geolocation_geocoder_address']['#placeholder'] = t('City, Country');
 
   $form[$identifier . '-lat']['#type'] = 'hidden';
   $form[$identifier . '-lng']['#type'] = 'hidden';
@@ -98,10 +105,10 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
       $form['field_profile_geolocation_proximity']['#type'] = 'hidden';
       $form['field_profile_geolocation_proximity-lat']['#type'] = 'hidden';
       $form['field_profile_geolocation_proximity-lng']['#type'] = 'hidden';
-      $form['location_details']['geolocation_geocoder_google_geocoding_api']['#size'] = 30;
+      $form['location_details']['geolocation_geocoder_address']['#size'] = 30;
 
       unset($form['location_details']['proximity']['#description']);
-      unset($form['location_details']['geolocation_geocoder_google_geocoding_api']['#description']);
+      unset($form['location_details']['geolocation_geocoder_address']['#description']);
       break;
 
     case 'views-exposed-form-search-content-page':
@@ -124,7 +131,7 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
  */
 function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateInterface $form_state) {
   // Address is a string filled into the exposed views filter.
-  $address = $form_state->getValue('geolocation_geocoder_google_geocoding_api');
+  $address = $form_state->getValue('geolocation_geocoder_address');
 
   if (empty($address)) {
     return;
@@ -146,7 +153,7 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
     $form_state->setValue('proximity-lng', $address_geocoded['lng']);
 
     // Set values for proximity VIEWS.
-    $form_state->setValue('field_profile_geolocation_proximity', $form_state->getValue('proximity'));
+    $form_state->setValue(['field_profile_geolocation_proximity', 'value'], $form_state->getValue('proximity'));
     $form_state->setValue('field_profile_geolocation_proximity-lat', $address_geocoded['lat']);
     $form_state->setValue('field_profile_geolocation_proximity-lng', $address_geocoded['lng']);
 
@@ -155,10 +162,10 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
     $args->set('proximity-lng', $address_geocoded['lng']);
   }
   else {
-    $element = ['geolocation_geocoder_google_geocoding_api'];
+    $element = ['geolocation_geocoder_address'];
 
     if ($form['location_details'] !== NULL) {
-      $element = $form['location_details']['geolocation_geocoder_google_geocoding_api'];
+      $element = $form['location_details']['geolocation_geocoder_address'];
     }
 
     $form_state->setError($element, t('Address "@address" not found or there is something wrong with the geolocation provider.', ["@address" => $address]));
@@ -338,7 +345,7 @@ function social_geolocation_search_api_db_query_alter(SelectInterface $db_query,
     ':filter_latcos' => cos(deg2rad($args['proximity-lat'])),
     ':filter_lng' => deg2rad($args['proximity-lng']),
     ':filter_latsin' => sin(deg2rad($args['proximity-lat'])),
-    ':earth_radius' => GeolocationCore::EARTH_RADIUS_KM,
+    ':earth_radius' => 6371, //@todo convert to miles see proximity.php
     ':proximity' => $args['proximity'],
   ]);
 }
