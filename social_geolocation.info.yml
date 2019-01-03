@@ -8,6 +8,7 @@ dependencies:
   - geocoder:geocoder_address
   - geocoder:geocoder_field
   - geolocation:geolocation
+  - geolocation:geolocation_leaflet
   - social_event
   - social_group
   - social_profile
