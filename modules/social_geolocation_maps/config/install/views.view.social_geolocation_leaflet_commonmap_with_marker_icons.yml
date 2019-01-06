@@ -135,11 +135,11 @@ display:
                 settings:
                   marker_icon_path: /modules/contrib/social_geolocation/modules/social_geolocation_maps/images/marker-events.png
                   icon_size:
-                    width: '25'
+                    width: '24'
                     height: '41'
                   icon_anchor:
-                    x: ''
-                    'y': ''
+                    x: '12'
+                    'y': '41'
                   popup_anchor:
                     x: '0'
                     'y': '0'
