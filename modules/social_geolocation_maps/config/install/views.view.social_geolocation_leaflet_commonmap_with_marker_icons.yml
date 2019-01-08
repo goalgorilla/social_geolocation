@@ -482,7 +482,7 @@ display:
                   geocoder: photon
                   settings:
                     label: Address
-                    description: 'Enter an address to be localized.'
+                    description: ''
                     location_priority:
                       lat: ''
                       lng: ''

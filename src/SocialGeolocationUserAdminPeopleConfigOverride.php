@@ -128,7 +128,7 @@ location_input:
       plugin_id: nominatim
       settings:
         label: Address
-        description: 'Enter an address to be localized.'
+        description: ''
       auto_submit: false
       hide_form: false
     weight: 0

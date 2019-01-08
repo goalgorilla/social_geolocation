@@ -70,6 +70,8 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
     $geocoder_plugin->formAttachGeocoder($form, $identifier);
   }
 
+  $form['geolocation_geocoder_address']['#description'] = '';
+
   $form['location_details']['geolocation_geocoder_address'] = $form['geolocation_geocoder_address'];
   unset($form['geolocation_geocoder_address']);
   $form['location_details']['geolocation_geocoder_address']['#title'] = t('Location');
