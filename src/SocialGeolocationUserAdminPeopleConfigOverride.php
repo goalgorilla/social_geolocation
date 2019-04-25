@@ -70,7 +70,7 @@ class SocialGeolocationUserAdminPeopleConfigOverride implements ConfigFactoryOve
                   'value' => [
                     'min' => '',
                     'max' => '',
-                    'value' => '0',
+                    'value' => '',
                     'center' => '',
                   ],
                   'group' => 1,
