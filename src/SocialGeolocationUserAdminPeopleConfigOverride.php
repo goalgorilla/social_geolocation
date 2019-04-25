@@ -6,7 +6,6 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ConfigFactoryOverrideInterface;
 use Drupal\Core\Config\StorageInterface;
-use Drupal\Core\Serialization\Yaml;
 
 /**
  * Example configuration override.

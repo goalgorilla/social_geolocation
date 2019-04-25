@@ -10,7 +10,6 @@ use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Query\QueryInterface;
-use Drupal\views\ViewExecutable;
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -57,7 +56,7 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   $identifier = 'proximity';
 
   /** @var \Drupal\geolocation\GeocoderInterface $geocoder_plugin */
-  $geocoder_plugin =  \Drupal::service('plugin.manager.geolocation.geocoder')->getGeocoder(
+  $geocoder_plugin = \Drupal::service('plugin.manager.geolocation.geocoder')->getGeocoder(
     'nominatim',
     []
   );
@@ -156,8 +155,27 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
 
     // Set values for proximity VIEWS.
     $form_state->setValue(['field_profile_geolocation_proximity', 'value'], $form_state->getValue('proximity'));
-    $form_state->setValue(['field_profile_geolocation_proximity', 'center', 'coordinates', 'lat'], $address_geocoded['lat']);
-    $form_state->setValue(['field_profile_geolocation_proximity', 'center', 'coordinates', 'lng'], $address_geocoded['lng']);
+
+    $form_state->setValue(
+      [
+        'field_profile_geolocation_proximity',
+        'center',
+        'coordinates',
+        'lat',
+      ],
+      $address_geocoded['lat']
+    );
+
+    $form_state->setValue(
+      [
+        'field_profile_geolocation_proximity',
+        'center',
+        'coordinates',
+        'lng',
+      ],
+      $address_geocoded['lng']
+    );
+
     $form_state->setValue('field_profile_geolocation_proximity-lat', $address_geocoded['lat']);
     $form_state->setValue('field_profile_geolocation_proximity-lng', $address_geocoded['lng']);
 
@@ -349,7 +367,8 @@ function social_geolocation_search_api_db_query_alter(SelectInterface $db_query,
     ':filter_latcos' => cos(deg2rad($args['proximity-lat'])),
     ':filter_lng' => deg2rad($args['proximity-lng']),
     ':filter_latsin' => sin(deg2rad($args['proximity-lat'])),
-    ':earth_radius' => 6371, //@todo convert to miles see proximity.php
+    // @todo convert to miles see proximity.php
+    ':earth_radius' => 6371,
     ':proximity' => $args['proximity'],
   ]);
 }
