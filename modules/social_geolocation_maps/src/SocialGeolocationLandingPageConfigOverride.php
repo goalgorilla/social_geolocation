@@ -6,7 +6,7 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ConfigFactoryOverrideInterface;
 use Drupal\Core\Config\StorageInterface;
-use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 
 /**
  * Example configuration override.
@@ -21,9 +21,9 @@ class SocialGeolocationLandingPageConfigOverride implements ConfigFactoryOverrid
   protected $configFactory;
 
   /**
-   * Module handler.
+   * The module handler.
    *
-   * @var \Drupal\Core\Extension\ModuleHandler
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
    */
   protected $moduleHandler;
 
@@ -32,10 +32,12 @@ class SocialGeolocationLandingPageConfigOverride implements ConfigFactoryOverrid
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The Drupal configuration factory.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ModuleHandler $moduleHandler) {
+  public function __construct(ConfigFactoryInterface $config_factory, ModuleHandlerInterface $module_handler) {
     $this->configFactory = $config_factory;
-    $this->moduleHandler = $moduleHandler;
+    $this->moduleHandler = $module_handler;
   }
 
   /**

@@ -41,7 +41,8 @@ function social_geolocation_install() {
       $account = User::load(1);
       $accountSwitcher->switchTo($account);
 
-      // Disable and enable the index so the social_geolocation field is properly added.
+      // Disable and enable the index so the social_geolocation field is
+      // properly added.
       $index->disable()->save();
       \Drupal::logger('social_geolocation')->info('Search index disabled');
       $index->enable()->save();
