@@ -10,6 +10,7 @@ use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Query\QueryInterface;
+use Drupal\Core\Locale\CountryManager;
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -204,7 +205,6 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
  *   An array with a status field and lat/lng values if a geolocation was found.
  */
 function _social_geolocation_geocode_address($address) {
-
   if (empty($address) || !\Drupal::hasService('plugin.manager.geocoder.provider')) {
     return [];
   }
@@ -225,6 +225,42 @@ function _social_geolocation_geocode_address($address) {
     'lat' => $result->first()->getLatitude(),
     'lng' => $result->first()->getLongitude(),
   ];
+}
+
+/**
+ * Converts an address field value to a string for the Google Maps API.
+ *
+ * Uses specific entries from an address field to create a Google Maps API
+ * compatible string. This avoids erroneous fields like langcode messing up the
+ * string.
+ *
+ * @param array $address
+ *   The address field value array.
+ *
+ * @return string
+ *   The string that can be sent to the Google Maps API.
+ */
+function _social_geolocation_address_to_string(array $address) {
+  $countries = CountryManager::getStandardList();
+
+  $country = $address['country_code'];
+
+  // If we have a valid country code we translate it to the full country name.
+  // This is needed to ensure geocoding of countries without address works.
+  if (isset($countries[$country])) {
+    $country = $countries[$country];
+  }
+
+  $formatted_address = [
+    $country,
+    str_replace($address['country_code'] . '-', '', $address['administrative_area']),
+    $address['locality'],
+    $address['dependent_locality'],
+    $address['postal_code'],
+    $address['address_line1'],
+  ];
+
+  return implode(', ', array_filter($formatted_address));
 }
 
 /**

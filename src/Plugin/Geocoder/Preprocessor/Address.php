@@ -50,7 +50,9 @@ class Address extends PreprocessorBase {
 
       $address[] = $value['country_code'];
 
-      $value['value'] = implode(',', array_filter($address));
+      // The value will be used for geocoding, lets make sure Google Api / OSM
+      // has the best results possible by formatting it correctly.
+      $value['value'] = _social_geolocation_address_to_string($value);
       $this->field->set($delta, $value);
     }
 
