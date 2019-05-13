@@ -53,6 +53,12 @@ class Address extends PreprocessorBase {
       // The value will be used for geocoding, lets make sure Google Api / OSM
       // has the best results possible by formatting it correctly.
       $value['value'] = _social_geolocation_address_to_string($value);
+
+      // Fallback for when our geocoding resulted in to nothing.
+      if ($value['value']) {
+        $value['value'] = implode(',', array_filter($address));
+      }
+
       $this->field->set($delta, $value);
     }
 
