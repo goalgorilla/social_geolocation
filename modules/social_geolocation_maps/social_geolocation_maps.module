@@ -76,9 +76,6 @@ function social_geolocation_maps_page_attachments_alter(array &$attachments) {
     $attachments['#attached']['library'][] = 'geolocation_leaflet/widget.leaflet';
     $attachments['#attached']['library'][] = 'geolocation_leaflet/geolocation.leaflet';
     $attachments['#attached']['library'][] = 'geolocation_leaflet/leaflet.markerclusterer';
-    $attachments['#attached']['library'][] = 'mapfeature.leaflet_marker_popup';
-    $attachments['#attached']['library'][] = 'leaflet.markerclusterer';
-    $attachments['#attached']['library'][] = 'mapfeature.leaflet_marker_clusterer';
   }
 
 }
