@@ -59,3 +59,26 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
     }
   }
 }
+
+/**
+ * implements hook_page_attachments_alter.
+ */
+function social_geolocation_maps_page_attachments_alter(array &$attachments) {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+
+  // If bigpipe is enabled, the attachments don't get loaded for LU.
+  // So this is necessary to fix https://www.drupal.org/node/3018719.
+  if ($route_name === 'view.upcoming_events.page_community_events'
+    && \Drupal::moduleHandler()->moduleExists('social_geolocation')
+    && \Drupal::moduleHandler()->moduleExists('big_pipe')
+    && !\Drupal::currentUser()->isAnonymous()) {
+
+    $attachments['#attached']['library'][] = 'geolocation_leaflet/widget.leaflet';
+    $attachments['#attached']['library'][] = 'geolocation_leaflet/geolocation.leaflet';
+    $attachments['#attached']['library'][] = 'geolocation_leaflet/leaflet.markerclusterer';
+    $attachments['#attached']['library'][] = 'mapfeature.leaflet_marker_popup';
+    $attachments['#attached']['library'][] = 'leaflet.markerclusterer';
+    $attachments['#attached']['library'][] = 'mapfeature.leaflet_marker_clusterer';
+  }
+
+}
