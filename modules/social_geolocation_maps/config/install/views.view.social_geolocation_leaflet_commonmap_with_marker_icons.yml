@@ -12,6 +12,9 @@ dependencies:
   - node
   - text
   - user
+  enforced:
+    module:
+      - social_geolocation_maps
 id: social_geolocation_leaflet_commonmap_with_marker_icons
 label: 'Social Geolocation - Leaflet - CommonMap with marker icons'
 module: views
