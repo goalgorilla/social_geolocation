@@ -111,6 +111,9 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
 
       unset($form['location_details']['proximity']['#description']);
       unset($form['location_details']['geolocation_geocoder_address']['#description']);
+      if (isset($form['center'])) {
+        unset($form['center']);
+      }
       break;
 
     case 'views-exposed-form-search-content-page':
