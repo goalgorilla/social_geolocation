@@ -42,8 +42,8 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
 
   $form['location_details'] = [
     '#title' => t('Location range'),
-    '#type' => 'fieldset',
-    "#weight" => 50,
+    '#type' => 'details',
+    '#weight' => 50,
   ];
   $form['location_details']['proximity'] = [
     '#type' => 'number',
