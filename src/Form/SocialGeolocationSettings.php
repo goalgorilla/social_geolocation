@@ -43,6 +43,17 @@ class SocialGeolocationSettings extends ConfigFormBase {
       ],
     ];
 
+    $form['unit_of_measurement'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Unit of measurement'),
+      '#description' => $this->t('Select your unit of measurement.'),
+      '#default_value' => $config->get('unit_of_measurement'),
+      '#options' => [
+        'km' => 'Kilometers',
+        'mi' => 'Miles',
+      ],
+    ];
+
     $geoconfig = $this->configFactory()->getEditable('geolocation.settings');
     $form['geolocation_google_map_api_key'] = [
       '#type' => 'textfield',
@@ -67,6 +78,7 @@ class SocialGeolocationSettings extends ConfigFormBase {
 
     $this->config('social_geolocation.settings')
       ->set('geolocation_provider', $form_state->getValue('geolocation_provider'))
+      ->set('unit_of_measurement', $form_state->getValue('unit_of_measurement'))
       ->save();
 
     // If users chooses Geolocation to be Google API we need to ensure
