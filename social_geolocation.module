@@ -49,7 +49,7 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   ];
   $form['location_details']['proximity'] = [
     '#type' => 'number',
-    '#title' => t("Distance ($unit_of_measurement)"),
+    '#title' => t('Distance @unitOfMeasurement', ['@unitOfMeasurement' => $unit_of_measurement]),
     '#description' => t('Recommended range from 10 to 1000.'),
     '#min' => 0,
     '#max' => 10000,
