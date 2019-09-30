@@ -8,3 +8,6 @@ social_geolocation.settings:
     geolocation_provider:
       type: string
       label: 'The choice for which provider to use to store geolocation data'
+    unit_of_measurement:
+      type: string
+      label: 'Unit of measurement'

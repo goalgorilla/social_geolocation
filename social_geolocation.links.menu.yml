@@ -1,0 +1,6 @@
+social_geolocation.settings:
+  title: 'Geolocation settings'
+  description: 'Settings for Social Geolocation.'
+  route_name: social_geolocation.settings
+  parent: social_core.admin.config.social
+  weight: 70

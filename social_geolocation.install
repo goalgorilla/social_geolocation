@@ -60,6 +60,10 @@ function social_geolocation_install() {
   \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
     ->set('geolocation_provider', 'openstreetmaps')->save();
 
+  // Default unit of measurement - Kilometers
+  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
+      ->set('unit_of_measurement', 'km')->save();
+
   // Update the correct provider.
   \Drupal::service('config.factory')->getEditable('geocoder.settings')
     ->set('plugins_options', [
@@ -88,6 +92,15 @@ function social_geolocation_update_8003(&$sandbox) {
         'locale' => '',
       ],
     ])->save();
+}
+
+/**
+ * Set the default unit of measurement to kilometers.
+ */
+function social_geolocation_update_8004(&$sandbox) {
+  // Default unit of measurement - Kilometers.
+  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
+    ->set('unit_of_measurement', 'km')->save();
 }
 
 /**
