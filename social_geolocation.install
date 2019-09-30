@@ -95,6 +95,15 @@ function social_geolocation_update_8003(&$sandbox) {
 }
 
 /**
+ * Set the default unit of measurement to kilometers.
+ */
+function social_geolocation_update_8004(&$sandbox) {
+  // Default unit of measurement - Kilometers.
+  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
+    ->set('unit_of_measurement', 'km')->save();
+}
+
+/**
  * Function to set default permissions.
  */
 function _social_geolocation_set_permissions() {
