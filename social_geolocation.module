@@ -8,6 +8,7 @@
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\geolocation\GeocoderInterface;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\Core\Locale\CountryManager;
@@ -35,8 +36,8 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   }
 
   /** @var \Drupal\geolocation\GeocoderInterface $geocoder_plugin */
-  $provider = \Drupal::service('plugin.manager.geocoder.provider')->getPlugins();
-  if (empty($provider)) {
+  $geocoders = \Drupal::service('plugin.manager.geolocation.geocoder')->getDefinitions();
+  if (empty($geocoders)) {
     return;
   }
 
