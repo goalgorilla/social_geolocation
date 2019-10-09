@@ -38,7 +38,7 @@ class Address extends PreprocessorBase {
       // For canada we need to remove postal code from the Address lookup.
       // See https://github.com/openstreetmap/Nominatim/issues/1052.
       // Canada has issues with postal codes and returning correct lat lng data.
-      if ($value['country_code'] !== NULL && $value['country_code'] !== 'CA') {
+      if ($value['country_code'] !== NULL && $value['country_code'] === 'CA') {
         unset($value['postal_code']);
       }
 
