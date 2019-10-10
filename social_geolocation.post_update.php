@@ -42,3 +42,17 @@ function social_geolocation_post_update_8001_update_field_configuration() {
   }
 
 }
+
+/**
+ * Enable Social Geolocation Search module.
+ */
+function social_geolocation_post_update_8002_enable_search_submodule() {
+  // The social_geolocation_search module has been added because search was
+  // always optional based on the search_api module, however, the new
+  // implementation will actually require things so it's better if we can switch
+  // the search support off entirely. It's enabled by default if the search_api
+  // module is enabled to keep current behaviour.
+  if (\Drupal::moduleHandler()->moduleExists('search_api')) {
+    \Drupal::service('module_installer')->install(['social_geolocation_search']);
+  }
+}

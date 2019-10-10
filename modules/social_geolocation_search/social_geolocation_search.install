@@ -1,0 +1,23 @@
+<?php
+
+use Drupal\search_api\Entity\Index;
+
+/**
+ * Implements hook_install().
+ */
+function social_geolocation_search_install() {
+  $indexes = Index::loadMultiple([
+    'social_users',
+    'social_groups',
+    'social_content',
+    'social_all',
+  ]);
+
+  // Ensure that configuration overrides are properly applied to the indexes.
+  // Also see social_tagging.install.
+  foreach ($indexes as $index_id => $index) {
+    // Simply saving the index will trigger a reprocessing of all fields.
+    $index->save();
+  }
+
+}
