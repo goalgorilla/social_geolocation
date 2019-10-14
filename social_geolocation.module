@@ -5,6 +5,7 @@
  * The Social Geolocation module.
  */
 
+use Drupal\address\AddressInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Locale\CountryManager;
@@ -12,6 +13,8 @@ use Drupal\group\Entity\GroupInterface;
 use Drupal\node\NodeInterface;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
+
+// @todo Add update hook to convert settings to new keys.
 
 /**
  * Implements hook_ENTITY_TYPE_presave().
@@ -80,8 +83,9 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
 
   $new_coordinates = NULL;
 
-  // Format address as a string consumable by the Google API.
-  $address = $entity->get($field_address)->first()->getValue();
+  // Format address as a string consumable by the geocoding API.
+  /** @var \Drupal\address\AddressInterface $address */
+  $address = $entity->get($field_address)->first();
   $address = _social_geolocation_address_to_string($address);
 
   // Convert formatted string to a set of coordinates for the geolocation field.
@@ -186,37 +190,28 @@ function _social_geolocation_geocode_address($address) {
 }
 
 /**
- * Converts an address field value to a string for the Google Maps API.
+ * Converts an address field value to a string for a geocoding API.
  *
- * Uses specific entries from an address field to create a Google Maps API
- * compatible string. This avoids erroneous fields like langcode messing up the
- * string.
+ * Uses the formatter provided by the CommerceGuys/Addressing library which
+ * takes into account the locale of the selected address. This should result in
+ * a proper lef-to-right string that can be consumed by at least Nominatim and
+ * the Google Geocoding API.
  *
- * @param array $address
+ * @param \Drupal\address\AddressInterface $address
  *   The address field value array.
  *
  * @return string
- *   The string that can be sent to the Google Maps API.
+ *   The string that can be sent to a geocoding API.
  */
-function _social_geolocation_address_to_string(array $address) {
-  $countries = CountryManager::getStandardList();
+function _social_geolocation_address_to_string(AddressInterface $address) {
+  /** @var \CommerceGuys\Addressing\Formatter\FormatterInterface $formatter */
+  $formatter = \Drupal::service('social_geolocation.default_address_formatter');
 
-  $country = $address['country_code'];
+  // Format the address as a plain-text block.
+  // Using the format that's correct for the locale of the address to convert
+  // will properly format all parts of the address.
+  $formatted_address = $formatter->format($address, ['html' => FALSE]);
 
-  // If we have a valid country code we translate it to the full country name.
-  // This is needed to ensure geocoding of countries without address works.
-  if (isset($countries[$country])) {
-    $country = $countries[$country];
-  }
-
-  $formatted_address = [
-    $country,
-    str_replace($address['country_code'] . '-', '', $address['administrative_area']),
-    $address['locality'],
-    $address['dependent_locality'],
-    $address['postal_code'],
-    $address['address_line1'],
-  ];
-
-  return implode(', ', array_filter($formatted_address));
+  // Convert newlines to comma separation for use in API queries.
+  return str_replace("\n", ', ', $formatted_address);
 }
