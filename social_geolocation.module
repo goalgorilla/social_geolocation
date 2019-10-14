@@ -133,7 +133,7 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
 /**
  * Retrieves the configured Geocoder plugin.
  *
- * @return \Drupal\geolocation\GeocoderInterface|\False
+ * @return \Drupal\geolocation\GeocoderInterface|FALSE
  *   Returns the configured geocoder or false if none is configured or the
  *   configured geocoder could not be loaded.
  */
@@ -207,10 +207,26 @@ function _social_geolocation_address_to_string(AddressInterface $address) {
   /** @var \CommerceGuys\Addressing\Formatter\FormatterInterface $formatter */
   $formatter = \Drupal::service('social_geolocation.default_address_formatter');
 
+  // Nominatim doesn't handle postal codes for Canada well. See Issue #3086891.
+  // To resolve this we remove the postal code before lookup.
+  if ($address->getCountryCode() === 'CA') {
+    $geocoder = _social_geolocation_get_geocoder();
+    if ($geocoder !== FALSE && $geocoder->getPluginId() === 'nominatim') {
+      $postal_code = $address->get('postal_code');
+      $address->set('postal_code', '');
+    }
+  }
+
   // Format the address as a plain-text block.
   // Using the format that's correct for the locale of the address to convert
   // will properly format all parts of the address.
   $formatted_address = $formatter->format($address, ['html' => FALSE]);
+
+  // After the address is formatted, return the postal code to the entity so
+  // it's not incorrectly saved.
+  if (isset($postal_code)) {
+    $address->set('postal_code', $postal_code);
+  }
 
   // Convert newlines to comma separation for use in API queries.
   return str_replace("\n", ', ', $formatted_address);
