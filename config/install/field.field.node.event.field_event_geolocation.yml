@@ -10,14 +10,6 @@ dependencies:
   enforced:
     module:
       - social_geolocation
-third_party_settings:
-  geolocation_address:
-    enable: true
-    address_field: node.event.field_event_address
-    geocoder: null
-    sync_mode: auto
-    direction: duplex
-    button_position: null
 id: node.event.field_event_geolocation
 field_name: field_event_geolocation
 entity_type: node

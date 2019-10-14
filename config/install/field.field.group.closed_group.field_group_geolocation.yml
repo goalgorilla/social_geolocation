@@ -10,14 +10,6 @@ dependencies:
   enforced:
     module:
     - social_geolocation
-third_party_settings:
-  geolocation_address:
-    enable: true
-    address_field: group.closed_group.field_group_address
-    geocoder: null
-    sync_mode: auto
-    direction: duplex
-    button_position: null
 id: group.closed_group.field_group_geolocation
 field_name: field_group_geolocation
 entity_type: group

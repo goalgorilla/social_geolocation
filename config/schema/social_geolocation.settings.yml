@@ -2,6 +2,9 @@ social_geolocation.settings:
   type: config_object
   label: 'Social Geolocation settings'
   mapping:
+    site_manager_assist:
+      type: boolean
+      label: 'Whether the user should be shown a message to contact a site manager in case of a geolocation error'
     site_manager_contact:
       type: integer
       label: 'The User ID of the site manager that can be contacted in case of a geolocation error'

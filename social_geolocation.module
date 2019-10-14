@@ -5,7 +5,133 @@
  * The Social Geolocation module.
  */
 
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Locale\CountryManager;
+use Drupal\group\Entity\GroupInterface;
+use Drupal\node\NodeInterface;
+use Drupal\profile\Entity\ProfileInterface;
+use Drupal\user\Entity\User;
+
+// TODO: The actual geocoding has been broken. Figure out how this worked for
+//  pachamama when we weren't using the Geocoder module (or figure out how the
+//  geocoder module does it).
+
+// TODO: Fix logic behind /admin/config/opensocial/social-geolocation
+
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ */
+function social_geolocation_group_presave(GroupInterface $group) {
+  _social_geolocation_entity_presave($group, 'group');
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ */
+function social_geolocation_node_presave(NodeInterface $node) {
+  if ($node->getType() == 'event') {
+    _social_geolocation_entity_presave($node, 'event');
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ */
+function social_geolocation_profile_presave(ProfileInterface $profile) {
+  _social_geolocation_entity_presave($profile, 'profile');
+}
+
+/**
+ * Set value to geolocation field based on address input.
+ *
+ * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+ *   The entity that is being saved.
+ * @param string $type
+ *   The type of the entity being saved.
+ */
+function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $type) {
+  $field_address = "field_{$type}_address";
+  $field_geolocation = "field_{$type}_geolocation";
+
+  // We require both an address field to geocode and a geolocation field to
+  // store the result in.
+  if (!$entity->hasField($field_address) || !$entity->hasField($field_geolocation)) {
+    return;
+  }
+
+  $empty_address = $entity->get($field_address)->isEmpty();
+  $empty_geolocation = $entity->get($field_geolocation)->isEmpty();
+  $is_updating = !empty($entity->original);
+
+  // If the entity has no address and no stored geolocation then there's also
+  // nothing to do. Otherwise the geolocation field needs to be updated.
+  if ($empty_address && $empty_geolocation) {
+    return;
+  }
+
+  // If the address hasn't been changed and there's already a geolocation stored
+  // then the geolocation doesn't need to be updated.
+  if (!$empty_geolocation && $is_updating &&
+    $entity->original->get($field_address)->getValue() === $entity->get($field_address)->getValue()) {
+    return;
+  }
+
+  // If we had a geolocation value but no longer have an address then we clear
+  // the geolocation value.
+  if ($empty_address && !$empty_geolocation) {
+    $entity->set($field_geolocation, NULL);
+    return;
+  }
+
+  $new_coordinates = NULL;
+
+  // Format address as a string consumable by the Google API.
+  $address = $entity->get($field_address)->first()->getValue();
+  $address = _social_geolocation_address_to_string($address);
+
+  // Convert formatted string to a set of coordinates for the geolocation field.
+  $location = _social_geolocation_geocode_address($address);
+
+  // Check whether we should show a help message on failed geolocation.
+  $site_manager_assist = \Drupal::config('social_geolocation.settings')->get('site_manager_assistance');
+
+  if (!empty($location)) {
+    $new_coordinates = [
+      'lat' => $location['lat'],
+      'lng' => $location['lng'],
+      'lat_sin' => sin(deg2rad($location['lat'])),
+      'lat_cos' => cos(deg2rad($location['lat'])),
+      'lng_rad' => deg2rad($location['lng']),
+    ];
+  }
+  elseif ($site_manager_assist) {
+    $contact = 'site manager';
+
+    // If the private message module is enabled then we create a link to contact
+    // the site manager by private message.
+    if (\Drupal::moduleHandler()->moduleExists('social_private_message')) {
+      $site_manager = \Drupal::config('social_geolocation.settings')->get('site_manager_contact');
+
+      // We can only link to a site manager if we have one configured and
+      // it's a valid user id.
+      if ($site_manager !== NULL && User::load($site_manager) !== NULL) {
+        $contact = Link::createFromRoute($contact, 'private_message.private_message_create', [], [
+          'query' => ['recipient' => $site_manager],
+        ])->toString();
+      }
+    }
+
+    \Drupal::messenger()->addWarning(
+      t("Unfortunately we can't locate the address you entered. Please update it or contact a @contact if you would like the event to show up in a search by location.", [
+        '@contact' => $contact,
+      ])
+    );
+  }
+
+  $entity->set($field_geolocation, $new_coordinates);
+}
 
 /**
  * Convert address to geolocation values.
@@ -19,14 +145,16 @@ use Drupal\Core\Locale\CountryManager;
 function _social_geolocation_geocode_address($address) {
   // If there's no address to geocode or we have no geocoder service
   // then there's nothing to do.
-  if (empty($address) || !\Drupal::hasService('plugin.manager.geolocation.location')) {
+  if (empty($address) || !\Drupal::hasService('plugin.manager.geolocation.geocoder')) {
     return [];
   }
 
-  // TODO: To support other geocoders this shouldn't be hardcoded.
+  $geocoder_plugin_id = \Drupal::config('social_geolocation.settings')->get('geolocation_provider');
+
+  // TODO: Fix support for geocoder plugin configuration.
   /** @var \Drupal\geolocation\GeocoderInterface $geocoder */
   $geocoder = \Drupal::service('plugin.manager.geolocation.geocoder')->getGeocoder(
-    'nominatim',
+    $geocoder_plugin_id,
     []
   );
 

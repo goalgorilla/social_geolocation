@@ -10,14 +10,6 @@ dependencies:
   enforced:
     module:
     - social_geolocation
-third_party_settings:
-  geolocation_address:
-    enable: true
-    address_field: profile.profile.field_profile_address
-    geocoder: null
-    sync_mode: auto
-    direction: duplex
-    button_position: null
 id: profile.profile.field_profile_geolocation
 field_name: field_profile_geolocation
 entity_type: profile
