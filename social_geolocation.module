@@ -13,13 +13,6 @@ use Drupal\node\NodeInterface;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
 
-// TODO: The actual geocoding has been broken. Figure out how this worked for
-//  pachamama when we weren't using the Geocoder module (or figure out how the
-//  geocoder module does it).
-
-// TODO: Fix logic behind /admin/config/opensocial/social-geolocation
-
-
 /**
  * Implements hook_ENTITY_TYPE_presave().
  */
@@ -134,6 +127,34 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
 }
 
 /**
+ * Retrieves the configured Geocoder plugin.
+ *
+ * @return \Drupal\geolocation\GeocoderInterface|\False
+ *   Returns the configured geocoder or false if none is configured or the
+ *   configured geocoder could not be loaded.
+ */
+function _social_geolocation_get_geocoder() {
+  $geocoder_plugin = &drupal_static(__FUNCTION__);
+
+  if (!isset($geocoder_plugin)) {
+    $geocoder_plugin_id = \Drupal::config('social_geolocation.settings')
+      ->get('geolocation_provider');
+
+    $geocoder_plugin = \Drupal::service('plugin.manager.geolocation.geocoder')
+      ->getGeocoder(
+        $geocoder_plugin_id,
+        // The configuration object passed to the plugins is not actually used by
+        // the geocoders implemented in the Geolocation module. Configuration
+        // happens through configuration objects that are loaded directly from the
+        // config factory (e.g. see Drupal\geolocation_google_maps\Plugin\geolocation\Geocoder\GoogleGeocodingAPI::geocode()).
+        []
+      );
+  }
+
+  return $geocoder_plugin;
+}
+
+/**
  * Convert address to geolocation values.
  *
  * @param string $address
@@ -145,18 +166,15 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
 function _social_geolocation_geocode_address($address) {
   // If there's no address to geocode or we have no geocoder service
   // then there's nothing to do.
-  if (empty($address) || !\Drupal::hasService('plugin.manager.geolocation.geocoder')) {
+  if (empty($address)) {
     return [];
   }
 
-  $geocoder_plugin_id = \Drupal::config('social_geolocation.settings')->get('geolocation_provider');
+  $geocoder = _social_geolocation_get_geocoder();
 
-  // TODO: Fix support for geocoder plugin configuration.
-  /** @var \Drupal\geolocation\GeocoderInterface $geocoder */
-  $geocoder = \Drupal::service('plugin.manager.geolocation.geocoder')->getGeocoder(
-    $geocoder_plugin_id,
-    []
-  );
+  if (empty($geocoder)) {
+    return [];
+  }
 
   $result = $geocoder->geocode($address);
 
