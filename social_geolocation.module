@@ -120,17 +120,33 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
   // Pass the arguments to be able to get values in search_api_db_query_alter.
   $args = \Drupal::request()->query;
 
+  $geocoded = _social_geolocation_geocode_address($address);
+
+  // If no proximity was set by the user we create a proximity value based on
+  // the bounding box for the geocoded value. If no geocoded value is available
+  // we fall back to 20 km/miles.
   if (empty($form_state->getValue('proximity'))) {
-    $form['proximity']['#value'] = 20;
-    $args->set('proximity', 20);
-    $form_state->setValue('proximity', 20);
+    $fallback_proximity = 20;
+
+    if (!empty($geocoded) && !empty($geocoded['boundary'])) {
+      $distance = social_geolocation_distance_between_points($geocoded['boundary']);
+
+      // Set the radius to half the cross section of the bounding box.
+      // @todo This value is always in KM and may need to be changed to miles.
+      $fallback_proximity = round($distance / 2);
+    }
+
+    $form['proximity']['#value'] = $fallback_proximity;
+    $args->set('proximity', $fallback_proximity);
+    $form_state->setValue('proximity', $fallback_proximity);
   }
 
-  $address_geocoded = _social_geolocation_geocode_address($address);
-  if (!empty($address_geocoded)) {
+  if (!empty($geocoded)) {
+    $location = $geocoded['location'];
+
     // Modify the form to alter the results.
-    $form_state->setValue('proximity-lat', $address_geocoded['lat']);
-    $form_state->setValue('proximity-lng', $address_geocoded['lng']);
+    $form_state->setValue('proximity-lat', $location['lat']);
+    $form_state->setValue('proximity-lng', $location['lng']);
 
     // Set values for proximity VIEWS.
     $form_state->setValue(['field_profile_geolocation_proximity', 'value'], $form_state->getValue('proximity'));
@@ -142,7 +158,7 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
         'coordinates',
         'lat',
       ],
-      $address_geocoded['lat']
+      $location['lat']
     );
 
     $form_state->setValue(
@@ -152,15 +168,15 @@ function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateI
         'coordinates',
         'lng',
       ],
-      $address_geocoded['lng']
+      $location['lng']
     );
 
-    $form_state->setValue('field_profile_geolocation_proximity-lat', $address_geocoded['lat']);
-    $form_state->setValue('field_profile_geolocation_proximity-lng', $address_geocoded['lng']);
+    $form_state->setValue('field_profile_geolocation_proximity-lat', $location['lat']);
+    $form_state->setValue('field_profile_geolocation_proximity-lng', $location['lng']);
 
     // Modify the page url to fix pagination and sharing.
-    $args->set('proximity-lat', $address_geocoded['lat']);
-    $args->set('proximity-lng', $address_geocoded['lng']);
+    $args->set('proximity-lat', $location['lat']);
+    $args->set('proximity-lng', $location['lng']);
   }
   else {
     $element = ['geolocation_geocoder_address'];
@@ -246,12 +262,13 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
   $address = _social_geolocation_address_to_string($address);
 
   // Convert formatted string to a set of coordinates for the geolocation field.
-  $location = _social_geolocation_geocode_address($address);
+  $geocoded = _social_geolocation_geocode_address($address);
 
   // Check whether we should show a help message on failed geolocation.
   $site_manager_assist = \Drupal::config('social_geolocation.settings')->get('site_manager_assistance');
 
-  if (!empty($location)) {
+  if (!empty($geocoded)) {
+    $location = $geocoded['location'];
     $new_coordinates = [
       'lat' => $location['lat'],
       'lng' => $location['lng'],
@@ -285,6 +302,32 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
   }
 
   $entity->set($field_geolocation, $new_coordinates);
+}
+
+/**
+ * Calculate the distance between a north east and south west point in km.
+ *
+ * Uses a model of a sphere as the earth. Calculates the distance between the
+ * latitude/longitude points according to: https://stackoverflow.com/a/1253545/576060
+ *
+ * @param array $points
+ *   An array containing lat_north_east, lng_north_east, lat_south_west and
+ *   lng_south_west.
+ * @return int
+ *   The estimated distance between the north_east and south_west points in km.
+ */
+function social_geolocation_distance_between_points(array $points) {
+  // Calculate the differences along the axes.
+  $d_lat = abs($points['lat_north_east'] - $points['lat_south_west']);
+  $d_lng = abs($points['lng_north_east'] - $points['lng_south_west']);
+  // Calculate the average latitude for longitudinal distance correction.
+  $middle_lat = $points['lat_north_east'] - ($d_lat / 2);
+
+  $lat_length = $d_lat * 110.574;
+  $lng_length = $d_lng * 111.320 * cos($middle_lat);
+
+  // Use pythagoras to calculate the actual length along the hypotenuse.
+  return sqrt(($lat_length ** 2) + ($lng_length ** 2));
 }
 
 /**
@@ -322,7 +365,7 @@ function _social_geolocation_get_geocoder() {
  *   The address that can be given to the Geocoder::geocode method.
  *
  * @return array
- *   An array with a status field and lat/lng values if a geolocation was found.
+ *   An array with a location and bounding box data if a geolocation was found.
  */
 function _social_geolocation_geocode_address($address) {
   // If there's no address to geocode or we have no geocoder service
@@ -339,11 +382,12 @@ function _social_geolocation_geocode_address($address) {
 
   $result = $geocoder->geocode($address);
 
+  // Normalise NULL values to arrays.
   if (empty($result)) {
     return [];
   }
 
-  return $result['location'];
+  return $result;
 }
 
 /**
