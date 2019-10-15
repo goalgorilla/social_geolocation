@@ -31,19 +31,6 @@ function social_geolocation_install() {
 }
 
 /**
- * This hook won't do anything and is needed only to make sure next one is 8003.
- */
-function social_geolocation_update_8002(&$sandbox) {
-}
-
-/**
- * This hook won't do anything and is needed only to make sure next one is 8003.
- */
-function social_geolocation_update_8003(&$sandbox) {
-  // Removed because the geocoder module is no longer supported.
-}
-
-/**
  * Set the default unit of measurement to kilometers.
  */
 function social_geolocation_update_8004(&$sandbox) {
