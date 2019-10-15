@@ -246,8 +246,6 @@ function _social_geolocation_search_alter_solr_query(SearchApiQuery $query) {
  * Enhance the Views exposed filter blocks forms.
  */
 function social_geolocation_search_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  // @todo The changes for the user admin page can possibly be moved to the
-  //   social_geolocation module as they don't rely on search.
   $filter_forms = [
     'views-exposed-form-search-all-page',
     'views-exposed-form-search-all-page-no-value',
@@ -257,87 +255,18 @@ function social_geolocation_search_form_views_exposed_form_alter(&$form, FormSta
     'views-exposed-form-search-users-page-no-value',
     'views-exposed-form-search-groups-page',
     'views-exposed-form-search-groups-page-no-value',
-    'views-exposed-form-user-admin-people-page-1',
   ];
 
-  if (!in_array($form['#id'], $filter_forms)) {
+  if (!in_array($form['#id'], $filter_forms, TRUE)) {
     return;
   }
 
-  $geocoder_plugin = _social_geolocation_get_geocoder();
+  social_geolocation_attach_views_location_filter($form);
 
-  if (empty($geocoder_plugin)) {
-    return;
-  }
-
-  $unit_of_measurement = \Drupal::config('social_geolocation.settings')->get('unit_of_measurement');
-
-  $form['location_details'] = [
-    '#title' => t('Location range'),
-    '#type' => 'details',
-    '#weight' => 50,
-  ];
-  $form['location_details']['proximity'] = [
-    '#type' => 'number',
-    '#title' => t('Distance (@unitOfMeasurement)', ['@unitOfMeasurement' => $unit_of_measurement]),
-    '#description' => t('Recommended range from 10 to 1000.'),
-    '#min' => 0,
-    '#max' => 10000,
-    '#weight' => 10,
-  ];
-
-  $identifier = 'proximity';
-
-  $geocoder_plugin->formAttachGeocoder($form, $identifier);
-
-  $form['geolocation_geocoder_address']['#description'] = '';
-
-  $form['location_details']['geolocation_geocoder_address'] = $form['geolocation_geocoder_address'];
-  unset($form['geolocation_geocoder_address']);
-  $form['location_details']['geolocation_geocoder_address']['#title'] = t('Location');
-  $form['location_details']['geolocation_geocoder_address']['#placeholder'] = t('City, Country');
-
-  $form[$identifier . '-lat']['#type'] = 'hidden';
-  $form[$identifier . '-lng']['#type'] = 'hidden';
-
-  $form = array_merge_recursive($form, [
-    '#attached' => [
-      'library' => [
-        'core/drupal.ajax',
-        'geolocation/geolocation.views.filter.geocoder',
-        'social_geolocation/social_geolocation.location',
-      ],
-      'drupalSettings' => [
-        'geolocation' => [
-          'geocoder' => [
-            'viewsFilterGeocoder' => [
-              $identifier => [
-                'type' => 'proximity',
-              ],
-            ],
-          ],
-        ],
-      ],
-    ],
-  ]);
-
-  switch ($form['#id']) {
-
-    case 'views-exposed-form-user-admin-people-page-1':
-      $form['field_profile_geolocation_proximity']['#type'] = 'hidden';
-      $form['field_profile_geolocation_proximity-lat']['#type'] = 'hidden';
-      $form['field_profile_geolocation_proximity-lng']['#type'] = 'hidden';
-      $form['location_details']['geolocation_geocoder_address']['#size'] = 30;
-
-      unset($form['location_details']['proximity']['#description']);
-      unset($form['location_details']['geolocation_geocoder_address']['#description']);
-      if (isset($form['center'])) {
-        unset($form['center']);
-      }
-      break;
-
-    case 'views-exposed-form-search-content-page':
-    case 'views-exposed-form-search-content-page-no-value':
+  // On the content search page the location filtering is only available when
+  // the user is searching for events specifically as other node types don't
+  // have location data at this moment.
+  if (in_array($form_id, ['views-exposed-form-search-content-page', 'views-exposed-form-search-content-page-no-value'], TRUE)) {
       $form['location_details']['#states'] = [
         'visible' => [
           ':input[name=type]' => [
@@ -345,78 +274,9 @@ function social_geolocation_search_form_views_exposed_form_alter(&$form, FormSta
           ],
         ],
       ];
-      break;
-  }
-
-  $form['#validate'][] = '_social_geolocation_search_form_views_exposed_form_validate';
-}
-
-/**
- * Validate function for search exposed form.
- */
-function _social_geolocation_search_form_views_exposed_form_validate(&$form, FormStateInterface $form_state) {
-  // Address is a string filled into the exposed views filter.
-  $address = $form_state->getValue('geolocation_geocoder_address');
-
-  if (empty($address)) {
-    return;
-  }
-
-  // Pass the arguments to be able to get values in search_api_db_query_alter.
-  $args = \Drupal::request()->query;
-
-  if (empty($form_state->getValue('proximity'))) {
-    $form['proximity']['#value'] = 20;
-    $args->set('proximity', 20);
-    $form_state->setValue('proximity', 20);
-  }
-
-  $address_geocoded = _social_geolocation_geocode_address($address);
-  if (!empty($address_geocoded)) {
-    // Modify the form to alter the results.
-    $form_state->setValue('proximity-lat', $address_geocoded['lat']);
-    $form_state->setValue('proximity-lng', $address_geocoded['lng']);
-
-    // Set values for proximity VIEWS.
-    $form_state->setValue(['field_profile_geolocation_proximity', 'value'], $form_state->getValue('proximity'));
-
-    $form_state->setValue(
-      [
-        'field_profile_geolocation_proximity',
-        'center',
-        'coordinates',
-        'lat',
-      ],
-      $address_geocoded['lat']
-    );
-
-    $form_state->setValue(
-      [
-        'field_profile_geolocation_proximity',
-        'center',
-        'coordinates',
-        'lng',
-      ],
-      $address_geocoded['lng']
-    );
-
-    $form_state->setValue('field_profile_geolocation_proximity-lat', $address_geocoded['lat']);
-    $form_state->setValue('field_profile_geolocation_proximity-lng', $address_geocoded['lng']);
-
-    // Modify the page url to fix pagination and sharing.
-    $args->set('proximity-lat', $address_geocoded['lat']);
-    $args->set('proximity-lng', $address_geocoded['lng']);
-  }
-  else {
-    $element = ['geolocation_geocoder_address'];
-
-    if ($form['location_details'] !== NULL) {
-      $element = $form['location_details']['geolocation_geocoder_address'];
-    }
-
-    $form_state->setError($element, t('Address "@address" not found or there is something wrong with the geolocation provider.', ["@address" => $address]));
   }
 }
+
 
 /**
  * Implements hook_block_view_BASE_BLOCK_ID_alter().

@@ -7,14 +7,171 @@
 
 use Drupal\address\AddressInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Locale\CountryManager;
 use Drupal\group\Entity\GroupInterface;
 use Drupal\node\NodeInterface;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
 
 // @todo Add update hook to convert settings to new keys.
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Enhance the Views exposed filter blocks forms on the people overview.
+ */
+function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $filter_forms = [
+    'views-exposed-form-user-admin-people-page-1',
+  ];
+
+  if (!in_array($form['#id'], $filter_forms, TRUE)) {
+    return;
+  }
+
+  social_geolocation_attach_views_location_filter($form, 'fieldset');
+
+  // Clean up profile geolocation field filters added by default.
+  $form['field_profile_geolocation_proximity']['#type'] = 'hidden';
+  $form['field_profile_geolocation_proximity-lat']['#type'] = 'hidden';
+  $form['field_profile_geolocation_proximity-lng']['#type'] = 'hidden';
+  $form['location_details']['geolocation_geocoder_address']['#size'] = 30;
+
+  unset($form['location_details']['proximity']['#description']);
+  unset($form['location_details']['geolocation_geocoder_address']['#description']);
+  if (isset($form['center'])) {
+    unset($form['center']);
+  }
+}
+
+/**
+ * Alters the form to attach the proximity filter.
+ *
+ * @param $form
+ *   The form to alter.
+ * @param string $container_type
+ *   What Form API element should be used for the container of the proximity
+ *   filter, either 'details' or 'fieldset'.
+ */
+function social_geolocation_attach_views_location_filter(&$form, $container_type = 'details') {
+  $geocoder_plugin = _social_geolocation_get_geocoder();
+
+  if (empty($geocoder_plugin)) {
+    return;
+  }
+
+  $unit_of_measurement = \Drupal::config('social_geolocation.settings')->get('unit_of_measurement');
+
+  $form['#validate'][] = '_social_geolocation_form_views_exposed_form_validate';
+
+  // Set up a container for our location filtering fields.
+  $form['location_details'] = [
+    '#title' => t('Location range'),
+    '#type' => $container_type,
+    '#weight' => 50,
+  ];
+  $form['location_details']['proximity'] = [
+    '#type' => 'number',
+    '#title' => t('Distance (@unitOfMeasurement)', ['@unitOfMeasurement' => $unit_of_measurement]),
+    '#description' => t('Recommended range from 10 to 1000.'),
+    '#min' => 0,
+    '#max' => 10000,
+    '#weight' => 10,
+  ];
+
+  $identifier = 'proximity';
+
+  // Add the geocoder field in our container.
+  $geocoder_plugin->formAttachGeocoder($form['location_details'], $identifier);
+
+  // Change the title to how it should be displayed in Open Social.
+  $form['location_details']['geolocation_geocoder_address']['#title'] = t('Location');
+  $form['location_details']['geolocation_geocoder_address']['#description'] = '';
+  $form['location_details']['geolocation_geocoder_address']['#placeholder'] = t('City, Country');
+
+  $form[$identifier . '-lat']['#type'] = 'hidden';
+  $form[$identifier . '-lng']['#type'] = 'hidden';
+
+  // Add the required libraries and javascript settings.
+  $form['#attached']['library'][] = 'core/drupal.ajax';
+  $form['#attached']['library'][] = 'geolocation/geolocation.views.filter.geocoder';
+  $form['#attached']['library'][] = 'social_geolocation/social_geolocation.location';
+  $form['#attached']['drupalSettings']['geolocation']['geocoder'] = [
+    'viewsFilterGeocoder' => [
+      $identifier => [
+        'type' => 'proximity',
+      ],
+    ],
+  ];
+}
+
+/**
+ * Validate function for Geolocation exposed form filter.
+ */
+function _social_geolocation_form_views_exposed_form_validate(&$form, FormStateInterface $form_state) {
+  // Address is a string filled into the exposed views filter.
+  $address = $form_state->getValue('geolocation_geocoder_address');
+
+  if (empty($address)) {
+    return;
+  }
+
+  // Pass the arguments to be able to get values in search_api_db_query_alter.
+  $args = \Drupal::request()->query;
+
+  if (empty($form_state->getValue('proximity'))) {
+    $form['proximity']['#value'] = 20;
+    $args->set('proximity', 20);
+    $form_state->setValue('proximity', 20);
+  }
+
+  $address_geocoded = _social_geolocation_geocode_address($address);
+  if (!empty($address_geocoded)) {
+    // Modify the form to alter the results.
+    $form_state->setValue('proximity-lat', $address_geocoded['lat']);
+    $form_state->setValue('proximity-lng', $address_geocoded['lng']);
+
+    // Set values for proximity VIEWS.
+    $form_state->setValue(['field_profile_geolocation_proximity', 'value'], $form_state->getValue('proximity'));
+
+    $form_state->setValue(
+      [
+        'field_profile_geolocation_proximity',
+        'center',
+        'coordinates',
+        'lat',
+      ],
+      $address_geocoded['lat']
+    );
+
+    $form_state->setValue(
+      [
+        'field_profile_geolocation_proximity',
+        'center',
+        'coordinates',
+        'lng',
+      ],
+      $address_geocoded['lng']
+    );
+
+    $form_state->setValue('field_profile_geolocation_proximity-lat', $address_geocoded['lat']);
+    $form_state->setValue('field_profile_geolocation_proximity-lng', $address_geocoded['lng']);
+
+    // Modify the page url to fix pagination and sharing.
+    $args->set('proximity-lat', $address_geocoded['lat']);
+    $args->set('proximity-lng', $address_geocoded['lng']);
+  }
+  else {
+    $element = ['geolocation_geocoder_address'];
+
+    if ($form['location_details'] !== NULL) {
+      $element = $form['location_details']['geolocation_geocoder_address'];
+    }
+
+    $form_state->setError($element, t('Address "@address" not found or there is something wrong with the geolocation provider.', ["@address" => $address]));
+  }
+}
 
 /**
  * Implements hook_ENTITY_TYPE_presave().
