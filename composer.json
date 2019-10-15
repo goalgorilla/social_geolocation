@@ -5,8 +5,13 @@
   "homepage": "http://drupal.org/project/social_geolocation",
   "license": "GPL-2.0+",
   "require": {
+    "commerceguys/addressing": "^1.0.0",
+    "drupal/address": "^1.0",
     "drupal/geocoder": "~2.0",
     "drupal/geolocation": "2.x-dev"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master"
   },
   "minimum-stability": "dev"
 }
