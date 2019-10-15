@@ -4,8 +4,8 @@ use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\group\Entity\GroupType;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Query\QueryInterface;
-use Solarium\Core\Query\QueryInterface as SolariumQueryInterface;
 
 // The factor that is used to convert miles to kilometers.
 define('MI_TO_KM', 1.609344);
@@ -192,13 +192,15 @@ function social_geolocation_search_api_db_query_alter(SelectInterface $db_query,
 }
 
 /**
- * Implements hook_search_api_solr_query_alter().
+ * Alternative to the search_api_solr alter hook.
+ *
+ * This method is called by social_geolocation_search_views_query_alter().
  *
  * Alters the search API query for the SOLR backend to provide location based
  * searching. This is done to complement the databae query alter. It's performed
  * here instead of in a contrib module so we can work with the existing fields.
  */
-function social_geolocation_search_search_api_solr_query_alter(SolariumQueryInterface $solarium_query, QueryInterface $query) {
+function _social_geolocation_search_alter_solr_query(SearchApiQuery $query) {
   $args = _social_geolocation_search_get_proximity_arguments();
 
   // If there is no proximity data then there is no alter to perform.
@@ -224,7 +226,8 @@ function social_geolocation_search_search_api_solr_query_alter(SolariumQueryInte
     return;
   }
 
-  $location_options = [
+  $location_options = $query->getOption('search_api_location', []);
+  $location_options[] = [
     // The field as known to our backend.
     'field' => "${entity_type}_geolocation",
     // The search latitude and longitude
