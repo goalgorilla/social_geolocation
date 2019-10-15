@@ -8,9 +8,23 @@
 use Drupal\field\Entity\FieldConfig;
 
 /**
- * Configure geolocation fields to pull data from Address fields.
+ * Enable Social Geolocation Search module.
  */
-function social_geolocation_post_update_8001_update_field_configuration() {
+function social_geolocation_post_update_8002_enable_search_submodule() {
+  // The social_geolocation_search module has been added because search was
+  // always optional based on the search_api module, however, the new
+  // implementation will actually require things so it's better if we can switch
+  // the search support off entirely. It's enabled by default if the search_api
+  // module is enabled to keep current behaviour.
+  if (\Drupal::moduleHandler()->moduleExists('search_api')) {
+    \Drupal::service('module_installer')->install(['social_geolocation_search']);
+  }
+}
+
+/**
+ * Remove configuration for the geocoder module as it's no longer used.
+ */
+function social_geolocation_post_update_8003_remove_geocoder_configuration() {
   $bundles = [
     ['group', 'open_group'],
     ['group', 'closed_group'],
@@ -29,30 +43,13 @@ function social_geolocation_post_update_8001_update_field_configuration() {
   $fields = FieldConfig::loadMultiple($field_ids);
 
   foreach ($fields as $field) {
-    $entity_id = $field->getTargetEntityTypeId();
-    $bundle_id = $field->getTargetBundle();
     $field
-      ->setThirdPartySetting('geolocation_address', 'enable', TRUE)
-      ->setThirdPartySetting('geolocation_address', 'address_field', "${entity_id}.${bundle_id}.field_${entity_id}_address")
-      ->setThirdPartySetting('geolocation_address', 'geocoder', NULL)
-      ->setThirdPartySetting('geolocation_address', 'sync_mode', 'auto')
-      ->setThirdPartySetting('geolocation_address', 'direction', 'duplex')
-      ->setThirdPartySetting('geolocation_address', 'button_position', NULL)
+      ->unsetThirdPartySetting('geolocation_address', 'enable')
+      ->unsetThirdPartySetting('geolocation_address', 'address_field')
+      ->unsetThirdPartySetting('geolocation_address', 'geocoder')
+      ->unsetThirdPartySetting('geolocation_address', 'sync_mode')
+      ->unsetThirdPartySetting('geolocation_address', 'direction')
+      ->unsetThirdPartySetting('geolocation_address', 'button_position')
       ->save();
-  }
-
-}
-
-/**
- * Enable Social Geolocation Search module.
- */
-function social_geolocation_post_update_8002_enable_search_submodule() {
-  // The social_geolocation_search module has been added because search was
-  // always optional based on the search_api module, however, the new
-  // implementation will actually require things so it's better if we can switch
-  // the search support off entirely. It's enabled by default if the search_api
-  // module is enabled to keep current behaviour.
-  if (\Drupal::moduleHandler()->moduleExists('search_api')) {
-    \Drupal::service('module_installer')->install(['social_geolocation_search']);
   }
 }
