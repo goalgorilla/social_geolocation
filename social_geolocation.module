@@ -375,7 +375,7 @@ function _social_geolocation_address_to_string(AddressInterface $address) {
   if ($address->getCountryCode() === 'CA') {
     $geocoder = _social_geolocation_get_geocoder();
     if ($geocoder !== FALSE && $geocoder->getPluginId() === 'nominatim') {
-      $postal_code = $address->get('postal_code');
+      $postal_code = $address->get('postal_code')->getValue();
       $address->set('postal_code', '');
     }
   }
