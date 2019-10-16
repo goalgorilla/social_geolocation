@@ -16,14 +16,6 @@ function social_geolocation_install() {
   // Enable permissions.
   _social_geolocation_set_permissions();
 
-  // Make sure for new installations we choose the free OSM version.
-  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
-    ->set('geolocation_provider', 'openstreetmaps')->save();
-
-  // Default unit of measurement - Kilometers
-  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
-      ->set('unit_of_measurement', 'km')->save();
-
   // By default we enable the Nominatim provider by leaflet be cause it's free.
   // This is not a dependency because users may want to swap it out.
   // Configuration is installed automatically from the config/optional dir.
