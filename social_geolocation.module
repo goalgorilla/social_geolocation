@@ -36,12 +36,18 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
   $form['field_profile_geolocation_proximity']['#type'] = 'hidden';
   $form['field_profile_geolocation_proximity-lat']['#type'] = 'hidden';
   $form['field_profile_geolocation_proximity-lng']['#type'] = 'hidden';
-  $form['location_details']['geolocation_geocoder_address']['#size'] = 30;
+  unset($form['center']);
 
-  unset($form['location_details']['proximity']['#description']);
-  unset($form['location_details']['geolocation_geocoder_address']['#description']);
-  if (isset($form['center'])) {
-    unset($form['center']);
+  // It's possible that location_details wasn't created because there is no
+  // geocoder. In that case the proximity filters should still be invisible but
+  // we don't tweak the fieldset.
+  if (isset($form['location_details'])) {
+    $form['location_details']['geolocation_geocoder_address']['#size'] = 30;
+
+    unset(
+      $form['location_details']['proximity']['#description'],
+      $form['location_details']['geolocation_geocoder_address']['#description']
+    );
   }
 }
 

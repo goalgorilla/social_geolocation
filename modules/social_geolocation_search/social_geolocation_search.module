@@ -266,7 +266,7 @@ function social_geolocation_search_form_views_exposed_form_alter(&$form, FormSta
   // On the content search page the location filtering is only available when
   // the user is searching for events specifically as other node types don't
   // have location data at this moment.
-  if (in_array($form_id, ['views-exposed-form-search-content-page', 'views-exposed-form-search-content-page-no-value'], TRUE)) {
+  if (isset($form['location_details']) && in_array($form['#id'], ['views-exposed-form-search-content-page', 'views-exposed-form-search-content-page-no-value'], TRUE)) {
       $form['location_details']['#states'] = [
         'visible' => [
           ':input[name=type]' => [
