@@ -361,36 +361,63 @@ function _social_geolocation_geocode_address($address) {
  * the Google Geocoding API.
  *
  * @param \Drupal\address\AddressInterface $address
- *   The address field value array.
+ *   The address field.
  *
  * @return string
  *   The string that can be sent to a geocoding API.
  */
-function _social_geolocation_address_to_string(AddressInterface $address) {
+function _social_geolocation_address_to_string(AddressInterface $address) : string {
   /** @var \CommerceGuys\Addressing\Formatter\FormatterInterface $formatter */
   $formatter = \Drupal::service('social_geolocation.default_address_formatter');
 
-  // Nominatim doesn't handle postal codes for Canada well. See Issue #3086891.
-  // To resolve this we remove the postal code before lookup.
-  if ($address->getCountryCode() === 'CA') {
-    $geocoder = _social_geolocation_get_geocoder();
-    if ($geocoder !== FALSE && $geocoder->getPluginId() === 'nominatim') {
-      $postal_code = $address->get('postal_code')->getValue();
-      $address->set('postal_code', '');
-    }
-  }
+  // Fix any edge cases in address formatting for the API we're using.
+  $address_changes = _social_geolocation_reformat_address_for_api($address);
 
   // Format the address as a plain-text block.
   // Using the format that's correct for the locale of the address to convert
   // will properly format all parts of the address.
   $formatted_address = $formatter->format($address, ['html' => FALSE]);
 
-  // After the address is formatted, return the postal code to the entity so
-  // it's not incorrectly saved.
-  if (isset($postal_code)) {
-    $address->set('postal_code', $postal_code);
+  // Revert any changes that were made to comply with what the API expects so
+  // the address values are stored in the way the user entered them.
+  foreach ($address_changes as $field => $value) {
+    $address->set($field, $value);
   }
 
   // Convert newlines to comma separation for use in API queries.
   return str_replace("\n", ', ', $formatted_address);
+}
+
+/**
+ * Fixes edge cases in address values before they're formatted.
+ *
+ * @param \Drupal\address\AddressInterface $address
+ *   The address field.
+ *
+ * @return array
+ *   An associative array with keys for the fields that were changed and values
+ *   of the original values for that field. Can be used to restore the Address
+ *   to its original state for storage in the database. Returns an empty array
+ *   if no changes were made.
+ */
+function _social_geolocation_reformat_address_for_api(AddressInterface $address) : array {
+  $geocoder = _social_geolocation_get_geocoder();
+  if ($geocoder !== FALSE && $geocoder->getPluginId() === 'nominatim') {
+    switch($address->getCountryCode()) {
+      // Nominatim doesn't handle postal codes for Canada well. See Issue #3086891.
+      // To resolve this we remove the postal code before lookup.
+      case 'CA':
+        $postal_code = $address->get('postal_code')->getValue();
+        $address->set('postal_code', '');
+        return ['postal_code' => $postal_code];
+      // Nominatim doesn't handle spaces in the postalcode for the Netherlands.
+      // To resolve this any spaces are removed.
+      case 'NL':
+        $postal_code = $address->get('postal_code')->getValue();
+        $address->set('postal_code', preg_replace('/\s/', '', $postal_code));
+        return ['postal_code' => $postal_code];
+    }
+  }
+
+  return [];
 }
