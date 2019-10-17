@@ -4,10 +4,8 @@ type: module
 core: 8.x
 dependencies:
   - address:address
-  - geocoder:geocoder
-  - geocoder:geocoder_address
-  - geocoder:geocoder_field
   - geolocation:geolocation
+  - geolocation:geolocation_address
   - geolocation:geolocation_leaflet
   - social_event
   - social_group

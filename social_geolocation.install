@@ -13,85 +13,13 @@ use Drupal\user\Entity\User;
  * Implements hook_install().
  */
 function social_geolocation_install() {
-  $indexes = [
-    'social_users',
-    'social_groups',
-    'social_content',
-    'social_all',
-  ];
-
-  // Disable indexes on install. This is because we first need to install
-  // our dependencies. Otherwise config override will destroy search api.
-  // Also see social_tagging.install.
-  foreach ($indexes as $key => $index) {
-    /* @var Drupal\search_api\Entity\Index $index */
-    $index = Index::load($index);
-    if (!$index instanceof Index) {
-      \Drupal::logger('social_geolocation')->info('Invalid search index');
-      return;
-    }
-    \Drupal::logger('social_geolocation')->info('Loaded search index');
-
-    // If currently enabled we will first disabled and enable the index.
-    if ($index !== NULL && $index->status()) {
-      \Drupal::logger('social_geolocation')->info('Search index exists');
-
-      // Elevate permissions so we can index *all* the items.
-      $accountSwitcher = Drupal::service('account_switcher');
-      $account = User::load(1);
-      $accountSwitcher->switchTo($account);
-
-      // Disable and enable the index so the social_geolocation field is
-      // properly added.
-      $index->disable()->save();
-      \Drupal::logger('social_geolocation')->info('Search index disabled');
-      $index->enable()->save();
-      \Drupal::logger('social_geolocation')->info('Search index enabled');
-
-      // Restore user account.
-      $accountSwitcher->switchBack();
-    }
-  }
-
   // Enable permissions.
   _social_geolocation_set_permissions();
 
-  // Make sure for new installations we choose the free OSM version.
-  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
-    ->set('geolocation_provider', 'openstreetmaps')->save();
-
-  // Default unit of measurement - Kilometers
-  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
-      ->set('unit_of_measurement', 'km')->save();
-
-  // Update the correct provider.
-  \Drupal::service('config.factory')->getEditable('geocoder.settings')
-    ->set('plugins_options', [
-      'nominatim' => [
-        'rooturl' => 'https://nominatim.openstreetmap.org/search/',
-        'locale' => '',
-      ],
-    ])->save();
-}
-
-/**
- * This hook won't do anything and is needed only to make sure next one is 8003.
- */
-function social_geolocation_update_8002(&$sandbox) {
-}
-
-/**
- * This hook won't do anything and is needed only to make sure next one is 8003.
- */
-function social_geolocation_update_8003(&$sandbox) {
-  // Update the correct provider.
-  \Drupal::service('config.factory')->getEditable('geocoder.settings')
-    ->set('plugins_options', [
-      'nominatim' => [
-        'rooturl' => 'https://nominatim.openstreetmap.org/search/',
-        'locale' => '',
-      ],
-    ])->save();
+  // By default we enable the Nominatim provider by leaflet be cause it's free.
+  // This is not a dependency because users may want to swap it out.
+  // Configuration is installed automatically from the config/optional dir.
+  \Drupal::service('module_installer')->install(['geolocation_leaflet']);
 }
 
 /**

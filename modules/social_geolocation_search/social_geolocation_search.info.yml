@@ -1,0 +1,9 @@
+name: 'Social Geolocation Search'
+description: 'Provides search support for the Social Geolocation module'
+type: module
+core: 8.x
+dependencies:
+  - social:social_search
+  - social_geolocation:social_geolocation
+  - search_api_location:search_api_location
+package: Social
