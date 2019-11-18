@@ -2,7 +2,7 @@
 
 /**
  * @file
- * The Social Geolocation Maps module.
+ * Contains hook implementations for the Social Geolocation module.
  */
 
 use Drupal\Core\Form\FormStateInterface;
@@ -72,7 +72,7 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
 }
 
 /**
- * implements hook_page_attachments_alter.
+ * Implements hook_page_attachments_alter().
  */
 function social_geolocation_maps_page_attachments_alter(array &$attachments) {
   $route_name = \Drupal::routeMatch()->getRouteName();

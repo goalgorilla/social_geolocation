@@ -2,7 +2,7 @@
 
 /**
  * @file
- * The Social Geolocation module.
+ * Contains hook implementations for the Social Geolocation module.
  */
 
 use Drupal\address\AddressInterface;
@@ -76,7 +76,7 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
 /**
  * Alters the form to attach the proximity filter.
  *
- * @param $form
+ * @param array $form
  *   The form to alter.
  * @param string $container_type
  *   What Form API element should be used for the container of the proximity
@@ -318,7 +318,7 @@ function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $t
 /**
  * Retrieves the configured Geocoder plugin.
  *
- * @return \Drupal\geolocation\GeocoderInterface|FALSE
+ * @return \Drupal\geolocation\GeocoderInterface|false
  *   Returns the configured geocoder or false if none is configured or the
  *   configured geocoder could not be loaded.
  */
@@ -332,10 +332,11 @@ function _social_geolocation_get_geocoder() {
     $geocoder_plugin = \Drupal::service('plugin.manager.geolocation.geocoder')
       ->getGeocoder(
         $geocoder_plugin_id,
-        // The configuration object passed to the plugins is not actually used by
-        // the geocoders implemented in the Geolocation module. Configuration
-        // happens through configuration objects that are loaded directly from the
-        // config factory (e.g. see Drupal\geolocation_google_maps\Plugin\geolocation\Geocoder\GoogleGeocodingAPI::geocode()).
+        // The configuration object passed to the plugins is not actually used
+        // by the geocoders implemented in the Geolocation module. Configuration
+        // happens through configuration objects that are loaded directly from
+        // the config factory (e.g. see
+        // Drupal\geolocation_google_maps\Plugin\geolocation\Geocoder\GoogleGeocodingAPI::geocode()).
         []
       );
   }
@@ -425,13 +426,15 @@ function _social_geolocation_address_to_string(AddressInterface $address) : stri
 function _social_geolocation_reformat_address_for_api(AddressInterface $address) : array {
   $geocoder = _social_geolocation_get_geocoder();
   if ($geocoder !== FALSE && $geocoder->getPluginId() === 'nominatim') {
-    switch($address->getCountryCode()) {
-      // Nominatim doesn't handle postal codes for Canada well. See Issue #3086891.
+    switch ($address->getCountryCode()) {
+      // Nominatim doesn't handle postal codes for Canada well.
+      // See Issue #3086891.
       // To resolve this we remove the postal code before lookup.
       case 'CA':
         $postal_code = $address->get('postal_code')->getValue();
         $address->set('postal_code', '');
         return ['postal_code' => $postal_code];
+
       // Nominatim doesn't handle spaces in the postalcode for the Netherlands.
       // To resolve this any spaces are removed.
       case 'NL':

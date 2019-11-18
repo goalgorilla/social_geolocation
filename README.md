@@ -28,7 +28,8 @@ supported.
 
 ### Supported Geocoding plugins
 #### OpenStreetMap
-By default this module uses the OpenStreetMap API. It is not needed to enter an API key. 
+By default this module uses the OpenStreetMap API. It is not needed to enter an 
+API key. 
 
 You can find the usage policy here:
 https://wiki.openstreetmap.org/wiki/API_usage_policy

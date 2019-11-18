@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Installation hook implementations for the Social Geolocation Search module.
+ */
+
 use Drupal\search_api\Entity\Index;
 
 /**

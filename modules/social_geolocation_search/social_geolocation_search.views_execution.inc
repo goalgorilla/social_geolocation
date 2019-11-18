@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Views alter hook implementations for the Social Geolocation Search module.
+ */
+
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
