@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Installation hook implementations for the Social Geolocation Search module.
+ */
+
 use Drupal\search_api\Entity\Index;
 
 /**
@@ -15,7 +20,7 @@ function social_geolocation_search_install() {
 
   // Ensure that configuration overrides are properly applied to the indexes.
   // Also see social_tagging.install.
-  foreach ($indexes as $index_id => $index) {
+  foreach ($indexes as $index) {
     // Simply saving the index will trigger a reprocessing of all fields.
     $index->save();
   }

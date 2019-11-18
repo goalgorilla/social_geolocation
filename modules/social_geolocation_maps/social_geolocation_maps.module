@@ -2,12 +2,24 @@
 
 /**
  * @file
- * The Social Geolocation Maps module.
+ * Contains hook implementations for the Social Geolocation module.
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_help().
+ */
+function social_geolocation_maps_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.social_geolocation_maps':
+      return 'This module provides a Map on the events page. Enable the module and create an event with an address so it shows up on the map.';
+  }
+  return NULL;
+}
 
 /**
  * Implements hook_field_widget_form_alter().
@@ -61,7 +73,7 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
 }
 
 /**
- * implements hook_page_attachments_alter.
+ * Implements hook_page_attachments_alter().
  */
 function social_geolocation_maps_page_attachments_alter(array &$attachments) {
   $route_name = \Drupal::routeMatch()->getRouteName();

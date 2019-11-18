@@ -2,8 +2,11 @@
 
 namespace Drupal\social_geolocation\Form;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 // Defines the plugin name for the OpenStreetMap geocoder plugin.
 define('OPENSTREETMAP_PLUGIN_ID', 'nominatim');
@@ -15,6 +18,31 @@ define('GOOGLE_GEOCODER_API_PLUGIN_ID', 'google_geocoding_api');
  * Class SocialGeolocationSettings.
  */
 class SocialGeolocationSettings extends ConfigFormBase {
+
+  /**
+   * The Drupal module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, ModuleHandlerInterface $module_handler) {
+    parent::__construct($config_factory);
+    $this->moduleHandler = $module_handler;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('module_handler')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -65,14 +93,14 @@ class SocialGeolocationSettings extends ConfigFormBase {
 
     // Add the nominatim provider from OpenStreetMap if the geolocation_leaflet
     // module that contains the geocoder is enabled.
-    if (\Drupal::moduleHandler()->moduleExists('geolocation_leaflet')) {
+    if ($this->moduleHandler->moduleExists('geolocation_leaflet')) {
       // The label is intentionally not translatable because it's a brand name.
       $form['geolocation_provider']['#options'][OPENSTREETMAP_PLUGIN_ID] = 'OpenStreetMap';
     }
 
     // Add the Google Geocoder API if the geolocation_google_maps module that
     // contains the geocoder is enabled.
-    if (\Drupal::moduleHandler()->moduleExists('geolocation_google_maps')) {
+    if ($this->moduleHandler->moduleExists('geolocation_google_maps')) {
       // The label is intentionally not translatable because it's a brand name.
       $form['geolocation_provider']['#options'][GOOGLE_GEOCODER_API_PLUGIN_ID] = 'Google Geocoding API';
 
