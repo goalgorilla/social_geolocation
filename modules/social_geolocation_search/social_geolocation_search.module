@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains hook implementations for the Social Geolocation Search module.
@@ -7,6 +8,7 @@
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\group\Entity\GroupType;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Query\QueryInterface;
@@ -20,7 +22,7 @@ define('SOCIAL_GEOLOCATION_SEARCH_EARTH_RADIUS', 6371);
 /**
  * Implements hook_help().
  */
-function social_geolocation_search_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+function social_geolocation_search_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'help.page.social_geolocation_search':
       return 'This module allows you to find events, groups and users by location in search. It works with a SQL and SOLR back-end.';
@@ -180,7 +182,7 @@ function social_geolocation_search_api_db_query_alter(SelectInterface $db_query,
     $entity_types = [$entity_types[$index]];
   }
 
-  // Add a complex snippet
+  // Add a complex snippet.
   foreach ($entity_types as $id => $entity_type) {
     if ($id) {
       $snippet .= ') OR (';

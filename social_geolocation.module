@@ -3,23 +3,24 @@
 /**
  * @file
  * Contains hook implementations for the Social Geolocation module.
+ *
+ * @todo Add update hook to convert settings to new keys.
  */
 
 use Drupal\address\AddressInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Link;
 use Drupal\group\Entity\GroupInterface;
 use Drupal\node\NodeInterface;
 use Drupal\profile\Entity\ProfileInterface;
 use Drupal\user\Entity\User;
 
-// @todo Add update hook to convert settings to new keys.
-
 /**
  * Implements hook_help().
  */
-function social_geolocation_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+function social_geolocation_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'help.page.social_geolocation':
       $text = file_get_contents(__DIR__ . '/README.md');
@@ -82,7 +83,7 @@ function social_geolocation_form_views_exposed_form_alter(&$form, FormStateInter
  *   What Form API element should be used for the container of the proximity
  *   filter, either 'details' or 'fieldset'.
  */
-function social_geolocation_attach_views_location_filter(&$form, $container_type = 'details') {
+function social_geolocation_attach_views_location_filter(array &$form, $container_type = 'details') {
   $geocoder_plugin = _social_geolocation_get_geocoder();
 
   if (empty($geocoder_plugin)) {
