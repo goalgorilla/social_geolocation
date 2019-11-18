@@ -10,6 +10,17 @@ use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
 
 /**
+ * Implements hook_help().
+ */
+function social_geolocation_maps_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.social_geolocation_maps':
+      return 'This module provides a Map on the events page. Enable the module and create an event with an address so it shows up on the map.';
+  }
+  return NULL;
+}
+
+/**
  * Implements hook_field_widget_form_alter().
  */
 function social_geolocation_maps_field_widget_form_alter(&$element, FormStateInterface $form_state, $context) {

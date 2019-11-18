@@ -17,6 +17,28 @@ use Drupal\user\Entity\User;
 // @todo Add update hook to convert settings to new keys.
 
 /**
+ * Implements hook_help().
+ */
+function social_geolocation_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.social_geolocation':
+      $text = file_get_contents(__DIR__ . '/README.md');
+      if (!\Drupal::moduleHandler()->moduleExists('markdown')) {
+        return '<pre>' . Html::escape($text) . '</pre>';
+      }
+      else {
+        // Use the Markdown filter to render the README.
+        $filter_manager = \Drupal::service('plugin.manager.filter');
+        $settings = \Drupal::configFactory()->get('markdown.settings')->getRawData();
+        $config = ['settings' => $settings];
+        $filter = $filter_manager->createInstance('markdown', $config);
+        return $filter->process($text, 'en');
+      }
+  }
+  return NULL;
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  *
  * Enhance the Views exposed filter blocks forms on the people overview.

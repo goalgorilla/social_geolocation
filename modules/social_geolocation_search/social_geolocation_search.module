@@ -14,6 +14,17 @@ define('MI_TO_KM', 1.609344);
 define('EARTH_RADIUS', 6371);
 
 /**
+ * Implements hook_help().
+ */
+function social_geolocation_search_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.social_geolocation_search':
+      return 'This module allows you to find events, groups and users by location in search. It works with a SQL and SOLR back-end.';
+  }
+  return NULL;
+}
+
+/**
  * Retrieves the arguments for the search views.
  *
  * All returned values are normalised to kilometers.
