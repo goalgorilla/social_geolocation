@@ -3,7 +3,7 @@ description: 'Provides Map providers for showing Social Geolocation data in View
 type: module
 core: 8.x
 dependencies:
-  - social_geolocation
   - geolocation:geolocation_leaflet
-  - social_event
+  - social:social_event
+  - social_geolocation:social_geolocation
 package: Social
