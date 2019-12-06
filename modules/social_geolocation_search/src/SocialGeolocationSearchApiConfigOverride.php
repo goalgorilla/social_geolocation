@@ -158,9 +158,7 @@ class SocialGeolocationSearchApiConfigOverride implements ConfigFactoryOverrideI
    * {@inheritdoc}
    */
   public function getCacheableMetadata($name) {
-    // This configuration override is invalidated if the enabled modules
-    // are changed.
-    return (new CacheableMetadata())->addCacheTags(['config:core.extension']);
+    return new CacheableMetadata();
   }
 
   /**
