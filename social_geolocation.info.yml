@@ -7,7 +7,7 @@ dependencies:
   - geolocation:geolocation
   - geolocation:geolocation_address
   - geolocation:geolocation_leaflet
-  - social:social_event
-  - social:social_group
-  - social:social_profile
+  - social_event
+  - social_group
+  - social_profile
 package: Social
