@@ -73,6 +73,14 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
       }
     }
   }
+  if ($view->id() === 'social_geolocation_members' &&
+    $view->getDisplay()->display['id'] === 'members_map_block') {
+
+    // Do not show users on the map who hide their location.
+    if ($uids = social_geolocation_maps_get_user_data_helper()) {
+      $query->addWhere(NULL, 'profile.profile_id', $uids, 'NOT IN');
+    }
+  }
 }
 
 /**
@@ -138,4 +146,23 @@ function social_geolocation_maps_block_access(Block $block, $operation, AccountI
       return AccessResult::forbidden();
     }
   }
+}
+
+/**
+ * Helper callback to get all users ids who hide their location.
+ */
+function social_geolocation_maps_get_user_data_helper() {
+  $users_data = \Drupal::service('user.data');
+  $users_data = $users_data->get('social_profile_privacy', NULL, 'private_info');
+
+  $private_info = [];
+
+  if (!empty($users_data)) {
+    foreach ($users_data as $uid => $user_data) {
+      if (empty($user_data['group_profile_contact_info'])) {
+        $private_info[] = $uid;
+      }
+    }
+  }
+  return $private_info;
 }
