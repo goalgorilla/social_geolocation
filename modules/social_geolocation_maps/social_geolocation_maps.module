@@ -166,3 +166,16 @@ function social_geolocation_maps_get_user_data_helper() {
   }
   return $private_info;
 }
+
+/**
+ * Implements hook_preprocess().
+ */
+function social_geolocation_maps_preprocess_profile(&$variables) {
+  /** @var \Drupal\profile\Entity\Profile $profile */
+  $profile = $variables['profile'];
+
+  if ($profile->getEntityTypeId() === 'profile') {
+    // Add lazy loading to profile pages.
+    $variables['content']['#attached']['library'][] = 'social_geolocation_maps/maps.lazy_load_reactivate';
+  }
+}
