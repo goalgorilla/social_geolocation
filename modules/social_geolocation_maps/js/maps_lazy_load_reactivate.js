@@ -4,8 +4,7 @@
 
   Drupal.behaviors.mapsSocialLazyLoadReactivate = {
     attach: function (context, setting) {
-
-      $('.leaflet-marker-icon').on('click', function () {
+      $(document).on('click', '.leaflet-marker-icon', function () {
         var bLazy = new Blazy();
         bLazy.revalidate();
       });
