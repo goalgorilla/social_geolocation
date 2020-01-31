@@ -151,8 +151,8 @@ display:
                 settings:
                   marker_icon_path: /modules/contrib/social_geolocation/modules/social_geolocation_maps/images/marker-members.png
                   icon_size:
-                    width: '24'
-                    height: '41'
+                    width: '36'
+                    height: '51'
                   icon_anchor:
                     x: '12'
                     'y': '41'
@@ -843,7 +843,6 @@ display:
         - 'languages:language_content'
         - 'languages:language_interface'
       tags:
-        - 'config:core.extension'
         - 'config:field.storage.profile.field_profile_first_name'
         - 'config:field.storage.profile.field_profile_geolocation'
         - 'config:field.storage.profile.field_profile_last_name'
@@ -860,7 +859,6 @@ display:
         - 'languages:language_content'
         - 'languages:language_interface'
       tags:
-        - 'config:core.extension'
         - 'config:field.storage.profile.field_profile_first_name'
         - 'config:field.storage.profile.field_profile_geolocation'
         - 'config:field.storage.profile.field_profile_last_name'

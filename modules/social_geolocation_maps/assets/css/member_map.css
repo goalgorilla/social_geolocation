@@ -1,0 +1,58 @@
+#social-geolocation-members-members-map-block .leaflet-popup-content-wrapper {
+  padding: 0;
+  overflow: hidden;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content {
+  position: relative;
+  width: 340px !important;
+  margin: 0;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content > div {
+  position: relative;
+  display: flex;
+  height: 86px;
+  align-items: center;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__image {
+  display: block;
+  flex: 0 0 86px;
+  max-width: 86px;
+  height: auto;
+  background: transparent;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__body {
+  display: block;
+  flex-grow: 1;
+  flex-shrink: 0;
+  max-width: 100%;
+  padding: 10px 15px;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__title {
+  max-height: none;
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  overflow: visible;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__title strong {
+  font-weight: 700;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__content-line {
+  margin-top: 5px;
+  font-size: 0.75rem;
+  color: #777;
+  fill: #777;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content .teaser__content-text {
+  line-height: 1.125rem;
+  text-overflow: initial;
+  overflow-x: visible;
+  white-space: normal;
+}
+#social-geolocation-members-members-map-block .leaflet-popup-content img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/*# sourceMappingURL=member_map.css.map */

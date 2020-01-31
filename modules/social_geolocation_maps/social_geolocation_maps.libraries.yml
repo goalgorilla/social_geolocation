@@ -1,7 +1,10 @@
 maps.lazy_load_reactivate:
   version: 1.x
+  css:
+    theme:
+      assets/css/member_map.css: {}
   js:
-    js/maps_lazy_load_reactivate.js: {}
+    assets/js/maps_lazy_load_reactivate.js: {}
   dependencies:
     - core/jquery
     - lazy/lazy-blazy
