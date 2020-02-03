@@ -90,16 +90,19 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
     // Do not show users on the map who hide their location.
     $users_data = \Drupal::service('user.data');
     $users_data = $users_data->get('social_profile_privacy', NULL, 'private_info');
+    $storage = \Drupal::entityTypeManager()->getStorage('profile');
 
     if (!empty($users_data)) {
       $uids = [];
       foreach ($users_data as $uid => $user_data) {
         if (empty($user_data['group_profile_contact_info'])) {
-          $uids[] = $uid;
+          $uids[] = key($storage->loadByProperties([
+            'uid' => $uid,
+          ]));
         }
-      }
-      if (!empty($uids)) {
-        $query->addWhere(NULL, 'profile.profile_id', $uids, 'NOT IN');
+        if (!empty($uids)) {
+          $query->addWhere(NULL, 'profile.profile_id', $uids, 'NOT IN');
+        }
       }
     }
   }
