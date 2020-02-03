@@ -177,6 +177,14 @@ function social_geolocation_maps_preprocess_profile(&$variables) {
 
   if ($profile->bundle() === 'profile') {
     // Add lazy loading to profile pages.
-    $variables['content']['#attached']['library'][] = 'social_geolocation_maps/maps.lazy_load_reactivate';
+    $variables['content']['#attached']['library'][] = 'social_geolocation_maps/maps.members';
   }
+
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function social_geolocation_maps_preprocess_geolocation_map_wrapper(&$variables) {
+  $variables['#attached']['library'][] = 'social_geolocation_maps/social.geolocation.map';
 }
