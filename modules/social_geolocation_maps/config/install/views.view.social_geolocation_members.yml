@@ -154,8 +154,8 @@ display:
                     width: '36'
                     height: '51'
                   icon_anchor:
-                    x: '12'
-                    'y': '41'
+                    x: '18'
+                    'y': '45'
                   popup_anchor:
                     x: '0'
                     'y': '0'
