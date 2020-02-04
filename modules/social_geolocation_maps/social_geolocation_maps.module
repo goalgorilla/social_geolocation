@@ -90,19 +90,24 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
     // Do not show users on the map who hide their location.
     $users_data = \Drupal::service('user.data');
     $users_data = $users_data->get('social_profile_privacy', NULL, 'private_info');
-    $storage = \Drupal::entityTypeManager()->getStorage('profile');
 
     if (!empty($users_data)) {
-      $uids = [];
+      $profile_ids = [];
+      $storage = \Drupal::entityTypeManager()->getStorage('profile');
+
       foreach ($users_data as $uid => $user_data) {
         if (empty($user_data['group_profile_contact_info'])) {
-          $uids[] = key($storage->loadByProperties([
+          /** @var \Drupal\profile\Entity\ProfileInterface $profile */
+          $profile = current($storage->loadByProperties([
             'uid' => $uid,
           ]));
+          if (!empty($profile->id())) {
+            $profile_ids[] = $profile->id();
+          }
         }
-        if (!empty($uids)) {
-          $query->addWhere(NULL, 'profile.profile_id', $uids, 'NOT IN');
-        }
+      }
+      if (!empty($profile_ids)) {
+        $query->addWhere(NULL, 'profile.profile_id', $profile_ids, 'NOT IN');
       }
     }
   }
@@ -158,7 +163,7 @@ function social_geolocation_maps_form_social_geolocation_settings_form_submit(ar
  */
 function social_geolocation_maps_block_access(Block $block, $operation, AccountInterface $account) {
   if (
-    $operation == 'view' &&
+    $operation === 'view' &&
     $block->getPluginId() === 'views_block:social_geolocation_members-members_map_block'
   ) {
     $config = \Drupal::config('social_geolocation_maps.settings');
