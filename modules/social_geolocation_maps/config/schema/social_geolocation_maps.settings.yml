@@ -5,3 +5,11 @@ social_geolocation_maps.settings:
     unit_of_measurement:
       type: string
       label: 'Enable members map'
+
+views.cache.social_geolocation_maps_tag:
+  type: views_cache
+  label: 'Tag-based caching (Social Geolocation Maps)'
+  mapping:
+    options:
+      type: mapping
+      label: 'Cache options'

@@ -10,6 +10,7 @@ dependencies:
   module:
     - geolocation
     - profile
+    - social_geolocation_maps
 id: social_geolocation_members
 label: 'Social Geolocation Members'
 module: views
@@ -29,8 +30,9 @@ display:
         type: none
         options: {  }
       cache:
-        type: tag
-        options: {  }
+        type: social_geolocation_maps_tag
+        options:
+          social_geolocation_maps_tag: social_geolocation_members_map
       query:
         type: views_query
         options:

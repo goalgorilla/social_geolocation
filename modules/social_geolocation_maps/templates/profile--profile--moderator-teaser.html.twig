@@ -28,8 +28,16 @@
   <div class="teaser__body">
     <div class="teaser__title">
       <strong>
+        {% if profile_stream_url %}
+          <a href="{{ profile_stream_url }}" target="_blank">
+        {% endif %}
+
         {{ content.field_profile_first_name }}
         {{ content.field_profile_last_name }}
+
+        {% if profile_stream_url %}
+          </a>
+        {% endif %}
       </strong>
     </div>
 
