@@ -7,7 +7,6 @@
 
 use Drupal\block\Entity\Block;
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Cache\Cache;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -99,16 +98,16 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
 
       foreach ($users_data as $uid => $user_data) {
         if (empty($user_data['group_profile_contact_info'])) {
-          /** @var \Drupal\profile\Entity\ProfileInterface $profile */
+          /** @var \Drupal\profile\Entity\ProfileInterface $profile || NULL */
           $profile = current($storage->loadByProperties([
             'uid' => $uid,
           ]));
-          if (!empty($profile->id())) {
+          if ($profile) {
             $profile_ids[] = $profile->id();
           }
         }
       }
-      if (!empty($profile_ids)) {
+      if ($profile_ids) {
         $query->addWhere(NULL, 'profile.profile_id', $profile_ids, 'NOT IN');
       }
     }
@@ -172,15 +171,12 @@ function social_geolocation_maps_form_user_form_alter(&$form, FormStateInterface
  */
 function social_geolocation_maps_account_settings_form_submit(array $form, FormStateInterface $form_state) {
   $account = $form_state->getFormObject()->getEntity();
+  $account_data = \Drupal::service('user.data')
+    ->get('social_profile_privacy', $account->id(), 'private_info');
+  $profile_privacy = $form_state->getValue('profile_privacy');
 
-  if (!\Drupal::currentUser()->isAnonymous() && $account->id()) {
-    $account_data = \Drupal::service('user.data')
-      ->get('social_profile_privacy', $account->id(), 'private_info');
-    $profile_privacy = $form_state->getValue('profile_privacy');
-
-    if ($account_data['group_profile_contact_info'] != $profile_privacy['group_profile_contact_info_visible']) {
-      Cache::invalidateTags(['social_geolocation_members_map']);
-    }
+  if ($account_data['group_profile_contact_info'] != $profile_privacy['group_profile_contact_info_visible']) {
+    \Drupal::service('cache_tags.invalidator')->invalidateTags(['social_geolocation_members_map']);
   }
 }
 
@@ -212,9 +208,8 @@ function social_geolocation_maps_preprocess_profile(&$variables) {
   if ($profile->bundle() === 'profile') {
     // Add lazy loading to profile pages.
     $variables['content']['#attached']['library'][] = 'social_geolocation_maps/maps.members';
-    $variables['profile_stream_url'] = Url::fromUserInput('/user/' . $profile->getOwnerId() . '/stream');
+    $variables['profile_stream_url'] = Url::fromRoute('social_user.stream', ['user' => $profile->getOwnerId()]);
   }
-
 }
 
 /**

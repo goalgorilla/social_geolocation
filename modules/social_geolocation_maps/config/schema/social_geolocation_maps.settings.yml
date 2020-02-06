@@ -2,8 +2,8 @@ social_geolocation_maps.settings:
   type: config_object
   label: 'Social Geolocation Maps settings'
   mapping:
-    unit_of_measurement:
-      type: string
+    members_map:
+      type: boolean
       label: 'Enable members map'
 
 views.cache.social_geolocation_maps_tag:

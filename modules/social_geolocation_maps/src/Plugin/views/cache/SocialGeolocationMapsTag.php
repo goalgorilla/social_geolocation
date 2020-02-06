@@ -64,11 +64,4 @@ class SocialGeolocationMapsTag extends Tag {
     return Cache::mergeTags($maps_tags, $this->view->storage->getCacheTags());
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function cacheExpire($type) {
-    return FALSE;
-  }
-
 }
