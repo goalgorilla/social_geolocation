@@ -17,7 +17,7 @@ settings:
   id: 'views_block:social_geolocation_members-members_map_block'
   label: ''
   provider: views
-  label_display: visible
+  label_display: '0'
   views_label: ''
   items_per_page: none
 visibility:

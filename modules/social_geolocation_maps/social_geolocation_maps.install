@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for social_geolocation_maps module.
+ */
+
+use Drupal\block\Entity\Block;
+use Symfony\Component\Yaml\Yaml;
+
+/**
+ * Add 'Social Geolocation Members' map block.
+ */
+function social_geolocation_maps_update_8001(&$sandbox) {
+  $blocks_add = [
+    drupal_get_path('module', 'social_geolocation_maps') . '/config/optional/block.block.views_block__social_geolocation_members_members_map_block.yml',
+  ];
+
+  foreach ($blocks_add as $config_file) {
+    if (is_file($config_file)) {
+      $content = file_get_contents($config_file);
+      $values = Yaml::parse($content);
+
+      if (is_array($values)) {
+        if (!Block::load($values['id'])) {
+          $block = Block::create($values);
+          $block->save();
+        }
+      }
+    }
+  }
+}
