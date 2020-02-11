@@ -11,6 +11,7 @@ dependencies:
     - geolocation
     - profile
     - social_geolocation_maps
+    - user
 id: social_geolocation_members
 label: 'Social Geolocation Members'
 module: views
@@ -27,8 +28,9 @@ display:
     position: 0
     display_options:
       access:
-        type: none
-        options: {  }
+        type: perm
+        options:
+          perm: 'view any profile'
       cache:
         type: social_geolocation_maps_tag
         options:
@@ -844,6 +846,7 @@ display:
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - user.permissions
       tags:
         - 'config:field.storage.profile.field_profile_first_name'
         - 'config:field.storage.profile.field_profile_geolocation'
@@ -860,6 +863,7 @@ display:
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - user.permissions
       tags:
         - 'config:field.storage.profile.field_profile_first_name'
         - 'config:field.storage.profile.field_profile_geolocation'

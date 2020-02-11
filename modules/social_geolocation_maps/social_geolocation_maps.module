@@ -98,7 +98,7 @@ function social_geolocation_maps_views_query_alter(ViewExecutable $view, QueryPl
 
       foreach ($users_data as $uid => $user_data) {
         if (empty($user_data['group_profile_contact_info'])) {
-          /** @var \Drupal\profile\Entity\ProfileInterface|null $profile*/
+          /** @var \Drupal\profile\Entity\ProfileInterface|null $profile */
           $profile = current($storage->loadByProperties([
             'uid' => $uid,
           ]));
