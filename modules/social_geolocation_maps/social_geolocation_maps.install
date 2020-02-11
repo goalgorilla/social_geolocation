@@ -9,39 +9,36 @@ use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Config\InstallStorage;
 
 /**
- * Add 'Social Geolocation Members' views.
- */
-function social_geolocation_maps_update_8001(&$sandbox) {
-
-  // Only create if the social_geolocation_members view doesn't exist.
-  if (!\Drupal::service('entity_type.manager')
-    ->getStorage('view')
-    ->load('social_geolocation_members')
-  ) {
-    $install_path = drupal_get_path('module', 'social_geolocation_maps') . '/' . InstallStorage::CONFIG_INSTALL_DIRECTORY;
-    $storage = new FileStorage($install_path);
-    \Drupal::entityTypeManager()
-      ->getStorage('view')
-      ->create($storage->read('views.view.social_geolocation_members'))
-      ->save();
-  }
-}
-
-/**
  * Add 'Social Geolocation Members' map block.
  */
-function social_geolocation_maps_update_8002(&$sandbox) {
+function social_geolocation_maps_update_8001(&$sandbox) {
+  $configs = [
+    'view' => [
+      'config_id' => 'social_geolocation_members',
+      'config_file' => 'views.view.social_geolocation_members',
+      'location' => InstallStorage::CONFIG_INSTALL_DIRECTORY,
+    ],
+    'block' => [
+      'config_id' => 'views_block__social_geolocation_members_members_map_block',
+      'config_file' => 'block.block.views_block__social_geolocation_members_members_map_block',
+      'location' => InstallStorage::CONFIG_OPTIONAL_DIRECTORY,
+    ],
+  ];
+  $base_path = drupal_get_path('module', 'social_geolocation_maps');
 
-  // Only create if the members map block doesn't exist.
-  if (!\Drupal::service('entity_type.manager')
-    ->getStorage('block')
-    ->load('views_block__social_geolocation_members_members_map_block')
-  ) {
-    $optional_install_path = drupal_get_path('module', 'social_geolocation_maps') . '/' . InstallStorage::CONFIG_OPTIONAL_DIRECTORY;
-    $storage = new FileStorage($optional_install_path);
-    \Drupal::entityTypeManager()
-      ->getStorage('block')
-      ->create($storage->read('block.block.views_block__social_geolocation_members_members_map_block'))
-      ->save();
+  foreach ($configs as $type => $config) {
+    $storage = \Drupal::entityTypeManager()->getStorage($type);
+
+    // Only create if the social_geolocation_members view doesn't exist.
+    if (!$storage->load($config['config_id'])) {
+      $new_storage = new FileStorage($base_path . '/' . $config['location']);
+      $storage->create($new_storage->read($config['config_file']))
+        ->save();
+    }
   }
+
+  // Display 'Social Geolocation Members' map block.
+  \Drupal::configFactory()->getEditable('social_geolocation_maps.settings')
+    ->set('members_map', TRUE)
+    ->save();
 }
