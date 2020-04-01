@@ -2,6 +2,9 @@ social_geolocation.settings:
   type: config_object
   label: 'Social Geolocation settings'
   mapping:
+    enabled:
+      type: boolean
+      label: 'Whether entities are processed and geolocation happen'
     site_manager_assist:
       type: boolean
       label: 'Whether the user should be shown a message to contact a site manager in case of a geolocation error'
