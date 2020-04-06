@@ -2,7 +2,7 @@ langcode: en
 status: true
 dependencies:
   config:
-    - core.entity_view_mode.profile.moderator_teaser
+    - core.entity_view_mode.profile.medium_teaser
     - field.storage.profile.field_profile_first_name
     - field.storage.profile.field_profile_geolocation
     - field.storage.profile.field_profile_last_name
@@ -30,7 +30,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'view any profile'
+          perm: 'view any profile profile'
       cache:
         type: social_geolocation_maps_tag
         options:
@@ -538,7 +538,7 @@ display:
         type: 'entity:profile'
         options:
           relationship: none
-          view_mode: moderator_teaser
+          view_mode: medium_teaser
       fields:
         field_profile_geolocation:
           id: field_profile_geolocation
