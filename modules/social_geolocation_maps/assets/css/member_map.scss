@@ -12,56 +12,54 @@
    > div {
      position: relative;
      display: flex;
+     flex-direction: column;
      height: 86px;
-     align-items: center;
+     justify-content: center;
+     padding-left: 86px;
    }
 
-   .teaser__image {
+   .card__text {
+     padding: 0;
+   }
+
+   .list-item__avatar {
+     position: absolute;
      display: block;
-     flex: 0 0 86px;
-     max-width: 86px;
+     top: 0;
+     left: 0;
+     width: 86px;
      height: auto;
      background: transparent;
    }
 
-   .teaser__body {
-     display: block;
-     flex-grow: 1;
-     flex-shrink: 0;
-     max-width: 100%;
-     padding: 10px 15px;
-   }
-
-   .teaser__title {
+   .list-item__text {
+     padding: 0 15px;
      max-height: none;
      margin-bottom: 0;
      font-size: 1rem;
      line-height: 1.5rem;
      overflow: visible;
-
-     strong {
-       font-weight: 700;
-     }
+     font-weight: 700;
+     color: #4a4a4a;
    }
 
-   .teaser__content-line {
+   .list-item__organization,
+   .list-item__function {
+     padding: 0 15px;
      margin-top: 5px;
      font-size: .75rem;
      color: #777;
      fill: #777;
-   }
-
-   .teaser__content-text {
      line-height: 1.125rem;
      text-overflow: initial;
      overflow-x: visible;
      white-space: normal;
+     text-align: left;
    }
 
-   img {
-     width: auto;
-     max-width: 100%;
-     height: auto;
+   .list-item__function {
+     margin-top: 0;
+     margin-bottom: 5px;
    }
  }
 }
