@@ -29,7 +29,13 @@
      left: 0;
      width: 86px;
      height: auto;
+     margin-top: 0;
+     border-radius: 0;
      background: transparent;
+
+     img {
+       border-radius: 0;
+     }
    }
 
    .list-item__text {

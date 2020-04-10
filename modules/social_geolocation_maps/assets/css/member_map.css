@@ -25,7 +25,12 @@
   left: 0;
   width: 86px;
   height: auto;
+  margin-top: 0;
+  border-radius: 0;
   background: transparent;
+}
+.view-social-geolocation-members .leaflet-popup-content .list-item__avatar img {
+  border-radius: 0;
 }
 .view-social-geolocation-members .leaflet-popup-content .list-item__text {
   padding: 0 15px;
