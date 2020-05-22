@@ -7,6 +7,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\NodeInterface;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
 
@@ -90,4 +91,42 @@ function social_geolocation_maps_page_attachments_alter(array &$attachments) {
     $attachments['#attached']['library'][] = 'geolocation_leaflet/leaflet.markerclusterer';
   }
 
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function social_geolocation_maps_preprocess_field(&$variables) {
+  if ($variables['element']['#formatter'] === 'geolocation_address') {
+    $entity = $variables['element']['#object'];
+    if ($entity && $entity instanceof NodeInterface && $entity->getType() === 'event') {
+      $social_event_settings = \Drupal::config('social_event.settings');
+      $address_visibility_settings = $social_event_settings->get('address_visibility_settings');
+      if (isset($address_visibility_settings['street_code_private']) && !empty($address_visibility_settings['street_code_private'])) {
+        $enrollments = \Drupal::entityTypeManager()->getStorage('event_enrollment')->loadByProperties([
+          'field_account' => \Drupal::currentUser()->id(),
+          'field_event' => $entity->id(),
+        ]);
+
+        $hide_street_and_postal_code = FALSE;
+        if ($enrollment = array_pop($enrollments)) {
+          $enrollment_status = $enrollment->field_enrollment_status->value;
+          if ($enrollment_status === '0') {
+            $hide_street_and_postal_code = TRUE;
+          }
+        }
+        else {
+          $hide_street_and_postal_code = TRUE;
+        }
+
+        if ($hide_street_and_postal_code && isset($variables['items'][0]['content'][0]['#coordinates'])) {
+          $lat = $variables['items'][0]['content'][0]['#coordinates']['lat'];
+          $lng = $variables['items'][0]['content'][0]['#coordinates']['lng'];
+
+          $variables['items'][0]['content'][0]['#coordinates']['lat'] = (string) ($lat + 0.001);
+          $variables['items'][0]['content'][0]['#coordinates']['lng'] = (string) ($lng + 0.001);
+        }
+      }
+    }
+  }
 }
