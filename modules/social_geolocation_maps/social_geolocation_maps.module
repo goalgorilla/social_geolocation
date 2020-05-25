@@ -120,7 +120,7 @@ function social_geolocation_maps_preprocess_field(&$variables) {
  * Implements hook_views_post_render().
  */
 function social_geolocation_maps_views_post_render(ViewExecutable $view, &$output, CachePluginBase $cache) {
-  if ($view->current_display === 'block_community_events_map' && $view->id() === 'social_geolocation_leaflet_commonmap_with_marker_icons' && isset($output['#rows'])) {
+  if (in_array($view->current_display, ['block_upcomming_events_map', 'block_community_events_map']) && $view->id() === 'social_geolocation_leaflet_commonmap_with_marker_icons' && isset($output['#rows'])) {
     $social_event_settings = \Drupal::config('social_event.settings');
     $address_visibility_settings = $social_event_settings->get('address_visibility_settings');
     if (!isset($address_visibility_settings['street_code_private']) || empty($address_visibility_settings['street_code_private'])) {
