@@ -108,8 +108,8 @@ function social_geolocation_maps_preprocess_field(&$variables) {
           $lat = $variables['items'][0]['content'][0]['#coordinates']['lat'];
           $lng = $variables['items'][0]['content'][0]['#coordinates']['lng'];
 
-          $variables['items'][0]['content'][0]['#coordinates']['lat'] = (string) ($lat + 0.01);
-          $variables['items'][0]['content'][0]['#coordinates']['lng'] = (string) ($lng + 0.01);
+          $variables['items'][0]['content'][0]['#coordinates']['lat'] = (string) ($lat + (rand(-9, 9) / 100));
+          $variables['items'][0]['content'][0]['#coordinates']['lng'] = (string) ($lng + (rand(-9, 9) / 100));
         }
       }
     }
@@ -134,8 +134,8 @@ function social_geolocation_maps_views_post_render(ViewExecutable $view, &$outpu
           $lat = $location['#position']['lat'];
           $lng = $location['#position']['lng'];
 
-          $location['#position']['lat'] = (string) ($lat + 0.01);
-          $location['#position']['lng'] = (string) ($lng + 0.01);
+          $location['#position']['lat'] = (string) ($lat + (rand(-9, 9) / 100));
+          $location['#position']['lng'] = (string) ($lng + (rand(-9, 9) / 100));
         }
       }
     }
