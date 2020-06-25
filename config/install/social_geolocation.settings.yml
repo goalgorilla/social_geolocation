@@ -1,2 +1,3 @@
+enabled: true
 geolocation_provider: nominatim
 unit_of_measurement: km

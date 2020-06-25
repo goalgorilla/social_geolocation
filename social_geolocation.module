@@ -234,6 +234,12 @@ function social_geolocation_profile_presave(ProfileInterface $profile) {
  *   The type of the entity being saved.
  */
 function _social_geolocation_entity_presave(FieldableEntityInterface $entity, $type) {
+  $enabled = \Drupal::config('social_geolocation.settings')->get('enabled');
+
+  if (!$enabled) {
+    return;
+  }
+
   $field_address = "field_{$type}_address";
   $field_geolocation = "field_{$type}_geolocation";
 

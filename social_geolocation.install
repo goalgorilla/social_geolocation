@@ -30,6 +30,14 @@ function social_geolocation_update_8004(&$sandbox) {
 }
 
 /**
+ * Set the geocoding to enabled by default.
+ */
+function social_geolocation_update_8005(&$sandbox) {
+  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
+    ->set('enabled', TRUE)->save();
+}
+
+/**
  * Function to set default permissions.
  */
 function _social_geolocation_set_permissions() {
