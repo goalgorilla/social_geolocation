@@ -5,6 +5,7 @@
  * Install, update and uninstall functions for the social_geolocation module.
  */
 
+use Drupal\field\Entity\FieldConfig;
 use Drupal\user\Entity\Role;
 
 /**
@@ -53,4 +54,100 @@ function _social_geolocation_set_permissions() {
       user_role_grant_permissions('sitemanager', ['set social geolocation settings']);
     }
   }
+}
+
+/**
+ * Create flexible_group geolocation field if module is enabled.
+ */
+function social_geolocation_update_8006(&$sandbox) {
+  // Install geolocation field for flexible group.
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('social_group_flexible_group')) {
+    $config_yaml = [
+      'langcode' => 'en',
+      'status' => TRUE,
+      'dependencies' => [
+        'config' => [
+          'field.storage.group.field_group_geolocation',
+          'group.type.flexible_group',
+        ],
+        'module' => [
+          'geolocation',
+          'social_group',
+          'social_group_flexible_group',
+        ],
+        'enforced' => [
+          'module' => [
+            'social_geolocation',
+          ],
+        ],
+      ],
+      'id' => 'group.flexible_group.field_group_geolocation',
+      'field_name' => 'field_group_geolocation',
+      'entity_type' => 'group',
+      'bundle' => 'flexible_group',
+      'label' => 'Geolocation',
+      'description' => '',
+      'required' => 'false',
+      'translatable' => 'false',
+      'default_value' => [],
+      'default_value_callback' => '',
+      'settings' => [],
+      'field_type' => 'geolocation',
+    ];
+
+    // Create the field configuration.
+    FieldConfig::create(
+          $config_yaml
+      )->save();
+  }
+
+}
+
+/**
+ * Create secret_group geolocation field if module is enabled.
+ */
+function social_geolocation_update_8007(&$sandbox) {
+  // Install geolocation field for flexible group.
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('social_group_flexible_group')) {
+    $config_yaml = [
+      'langcode' => 'en',
+      'status' => TRUE,
+      'dependencies' => [
+        'config' => [
+          'field.storage.group.field_group_geolocation',
+          'group.type.secret_group',
+        ],
+        'module' => [
+          'geolocation',
+          'social_group',
+          'social_group_secret_group',
+        ],
+        'enforced' => [
+          'module' => [
+            'social_geolocation',
+          ],
+        ],
+      ],
+      'id' => 'group.secret_group.field_group_geolocation',
+      'field_name' => 'field_group_geolocation',
+      'entity_type' => 'group',
+      'bundle' => 'secret_group',
+      'label' => 'Geolocation',
+      'description' => '',
+      'required' => 'false',
+      'translatable' => 'false',
+      'default_value' => [],
+      'default_value_callback' => '',
+      'settings' => [],
+      'field_type' => 'geolocation',
+    ];
+
+    // Create the field configuration.
+    FieldConfig::create(
+          $config_yaml
+      )->save();
+  }
+
 }
