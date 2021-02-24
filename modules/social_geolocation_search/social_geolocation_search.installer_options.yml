@@ -1,2 +1,2 @@
-name: Social Geolocation Search
-description: Provides search support for the Social Geolocation module.
+name: Geolocation - Search
+description: Extends the location based filtering to search results.
