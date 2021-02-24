@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - views.view.social_geolocation_members
+  module:
+    - views
+  theme:
+    - socialblue
+id: views_block__social_geolocation_members_members_map_block
+theme: socialblue
+region: title
+weight: 0
+provider: null
+plugin: 'views_block:social_geolocation_members-members_map_block'
+settings:
+  id: 'views_block:social_geolocation_members-members_map_block'
+  label: ''
+  provider: views
+  label_display: '0'
+  views_label: ''
+  items_per_page: none
+visibility:
+  request_path:
+    id: request_path
+    pages: /all-members
+    negate: false
+    context_mapping: {  }

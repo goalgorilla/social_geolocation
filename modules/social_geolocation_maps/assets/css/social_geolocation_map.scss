@@ -1,0 +1,58 @@
+@mixin circle {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+
+  @content;
+}
+
+.marker-cluster,
+.marker-cluster--small {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+
+  &:after {
+    @include circle {
+      opacity: .6;
+      z-index: 1;
+    }
+  }
+
+  div {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border-radius: 50%;
+    background: transparent;
+
+    font-weight: 700;
+    color: #fff;
+    font-size: 1.125rem;
+    z-index: 2;
+
+    span {
+      position: relative;
+      margin-top: -3px;
+      z-index: 3;
+    }
+
+    &:after {
+      @include circle {
+        opacity: .8;
+      }
+    }
+  }
+}
+
+.geolocation-map-container {
+  z-index: 5;
+}

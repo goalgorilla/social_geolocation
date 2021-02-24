@@ -1,0 +1,57 @@
+.marker-cluster,
+.marker-cluster--small {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.marker-cluster:after,
+.marker-cluster--small:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  opacity: 0.6;
+  z-index: 1;
+}
+.marker-cluster div,
+.marker-cluster--small div {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.125rem;
+  z-index: 2;
+}
+.marker-cluster div span,
+.marker-cluster--small div span {
+  position: relative;
+  margin-top: -3px;
+  z-index: 3;
+}
+.marker-cluster div:after,
+.marker-cluster--small div:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.geolocation-map-container {
+  z-index: 5;
+}
+
+/*# sourceMappingURL=social_geolocation_map.css.map */

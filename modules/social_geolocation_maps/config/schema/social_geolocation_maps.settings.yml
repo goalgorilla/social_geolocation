@@ -1,0 +1,15 @@
+social_geolocation_maps.settings:
+  type: config_object
+  label: 'Social Geolocation Maps settings'
+  mapping:
+    members_map:
+      type: boolean
+      label: 'Enable members map'
+
+views.cache.social_geolocation_maps_tag:
+  type: views_cache
+  label: 'Tag-based caching (Social Geolocation Maps)'
+  mapping:
+    options:
+      type: mapping
+      label: 'Cache options'

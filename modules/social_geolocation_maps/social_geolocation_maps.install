@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for social_geolocation_maps module.
+ */
+
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Config\InstallStorage;
+
+/**
+ * Add 'Social Geolocation Members' map block.
+ */
+function social_geolocation_maps_update_8001(&$sandbox) {
+  $configs = [
+    'view' => [
+      'config_id' => 'social_geolocation_members',
+      'config_file' => 'views.view.social_geolocation_members',
+      'location' => InstallStorage::CONFIG_INSTALL_DIRECTORY,
+    ],
+    'block' => [
+      'config_id' => 'views_block__social_geolocation_members_members_map_block',
+      'config_file' => 'block.block.views_block__social_geolocation_members_members_map_block',
+      'location' => InstallStorage::CONFIG_OPTIONAL_DIRECTORY,
+    ],
+  ];
+  $base_path = drupal_get_path('module', 'social_geolocation_maps');
+
+  foreach ($configs as $type => $config) {
+    $storage = \Drupal::entityTypeManager()->getStorage($type);
+
+    // Only create if the social_geolocation_members view doesn't exist.
+    if (!$storage->load($config['config_id'])) {
+      $new_storage = new FileStorage($base_path . '/' . $config['location']);
+      $storage->create($new_storage->read($config['config_file']))
+        ->save();
+    }
+  }
+
+  // Display 'Social Geolocation Members' map block.
+  \Drupal::configFactory()->getEditable('social_geolocation_maps.settings')
+    ->set('members_map', TRUE)
+    ->save();
+}
