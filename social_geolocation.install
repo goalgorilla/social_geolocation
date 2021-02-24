@@ -5,7 +5,9 @@
  * Install, update and uninstall functions for the social_geolocation module.
  */
 
+use Drupal\field\Entity\FieldConfig;
 use Drupal\user\Entity\Role;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Implements hook_install().
@@ -18,6 +20,20 @@ function social_geolocation_install() {
   // This is not a dependency because users may want to swap it out.
   // Configuration is installed automatically from the config/optional dir.
   \Drupal::service('module_installer')->install(['geolocation_leaflet']);
+
+  // Add geolocation proximity filter to user overview view (Admin -> People).
+  _social_geolocation_alter_admin_people_view();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function social_geolocation_uninstall() {
+  // When uninstalling this module, we would like to remove the filter that
+  // was added when installing this module.
+  $config = \Drupal::configFactory()
+    ->getEditable('views.view.user_admin_people');
+  $config->clear('display.default.display_options.filters.field_profile_geolocation_proximity')->save(TRUE);
 }
 
 /**
@@ -27,6 +43,14 @@ function social_geolocation_update_8004(&$sandbox) {
   // Default unit of measurement - Kilometers.
   \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
     ->set('unit_of_measurement', 'km')->save();
+}
+
+/**
+ * Set the geocoding to enabled by default.
+ */
+function social_geolocation_update_8005(&$sandbox) {
+  \Drupal::service('config.factory')->getEditable('social_geolocation.settings')
+    ->set('enabled', TRUE)->save();
 }
 
 /**
@@ -45,4 +69,214 @@ function _social_geolocation_set_permissions() {
       user_role_grant_permissions('sitemanager', ['set social geolocation settings']);
     }
   }
+}
+
+/**
+ * Create flexible_group geolocation field if module is enabled.
+ */
+function social_geolocation_update_8006(&$sandbox) {
+  // Install geolocation field for flexible group.
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('social_group_flexible_group')) {
+    $config_yaml = [
+      'langcode' => 'en',
+      'status' => TRUE,
+      'dependencies' => [
+        'config' => [
+          'field.storage.group.field_group_geolocation',
+          'group.type.flexible_group',
+        ],
+        'module' => [
+          'geolocation',
+          'social_group',
+          'social_group_flexible_group',
+        ],
+        'enforced' => [
+          'module' => [
+            'social_geolocation',
+          ],
+        ],
+      ],
+      'id' => 'group.flexible_group.field_group_geolocation',
+      'field_name' => 'field_group_geolocation',
+      'entity_type' => 'group',
+      'bundle' => 'flexible_group',
+      'label' => 'Geolocation',
+      'description' => '',
+      'required' => 'false',
+      'translatable' => 'false',
+      'default_value' => [],
+      'default_value_callback' => '',
+      'settings' => [],
+      'field_type' => 'geolocation',
+    ];
+
+    // Create the field configuration.
+    FieldConfig::create(
+          $config_yaml
+      )->save();
+  }
+
+}
+
+/**
+ * Create secret_group geolocation field if module is enabled.
+ */
+function social_geolocation_update_8007(&$sandbox) {
+  // Install geolocation field for flexible group.
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('social_group_flexible_group')) {
+    $config_yaml = [
+      'langcode' => 'en',
+      'status' => TRUE,
+      'dependencies' => [
+        'config' => [
+          'field.storage.group.field_group_geolocation',
+          'group.type.secret_group',
+        ],
+        'module' => [
+          'geolocation',
+          'social_group',
+          'social_group_secret_group',
+        ],
+        'enforced' => [
+          'module' => [
+            'social_geolocation',
+          ],
+        ],
+      ],
+      'id' => 'group.secret_group.field_group_geolocation',
+      'field_name' => 'field_group_geolocation',
+      'entity_type' => 'group',
+      'bundle' => 'secret_group',
+      'label' => 'Geolocation',
+      'description' => '',
+      'required' => 'false',
+      'translatable' => 'false',
+      'default_value' => [],
+      'default_value_callback' => '',
+      'settings' => [],
+      'field_type' => 'geolocation',
+    ];
+
+    // Create the field configuration.
+    FieldConfig::create(
+          $config_yaml
+      )->save();
+  }
+
+}
+
+/**
+ * Adds the proximity filter to existing user admin people overview.
+ */
+function _social_geolocation_alter_admin_people_view() {
+  $config_yaml = <<<YAML
+field_profile_geolocation_proximity:
+          id: field_profile_geolocation_proximity
+          table: profile__field_profile_geolocation
+          field: field_profile_geolocation_proximity
+          relationship: profile
+          group_type: group
+          admin_label: ''
+          operator: '<='
+          value:
+            min: ''
+            max: ''
+            value: ''
+            center: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: field_profile_geolocation_proximity_op
+            label: 'Proximity (field_profile_geolocation)'
+            description: ''
+            use_operator: false
+            operator: field_profile_geolocation_proximity_op
+            identifier: field_profile_geolocation_proximity
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+              anonymous: '0'
+              administrator: '0'
+              contentmanager: '0'
+              sitemanager: '0'
+            placeholder: ''
+            min_placeholder: ''
+            max_placeholder: ''
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
+          location_input:
+            client_location:
+              weight: 0
+              enable: false
+              location_input_id: client_location
+              settings:
+                auto_submit: false
+                hide_form: false
+            coordinates:
+              enable: true
+              weight: 0
+              location_input_id: coordinates
+            geocoder:
+              settings:
+                plugin_id: nominatim
+                settings:
+                  label: Address
+                  description: ''
+                auto_submit: false
+                hide_form: false
+              weight: 0
+              enable: false
+              location_input_id: geocoder
+            'fixed_value:fixed_value':
+              settings:
+                location_settings:
+                  settings:
+                    latitude: ''
+                    longitude: ''
+                location_plugin_id: fixed_value
+              weight: 0
+              enable: false
+              location_input_id: location_plugins
+            'freeogeoip:freeogeoip':
+              weight: 0
+              enable: false
+              location_input_id: location_plugins
+              settings:
+                location_plugin_id: freeogeoip
+          unit: km
+          plugin_id: geolocation_filter_proximity
+YAML;
+
+  // Parse the above config for our new filter.
+  $vbo_filter_config = Yaml::parse($config_yaml);
+
+  $config = \Drupal::configFactory()
+    ->getEditable('views.view.user_admin_people');
+  // Get the config of the filters.
+  $filters = $config->get('display.default.display_options.filters');
+  // Merge the arrays.
+  $filters = $vbo_filter_config + $filters;
+  // Set the filters in the config.
+  $config->set('display.default.display_options.filters', $filters)->save();
+}
+
+/**
+ * Add geolocation proximity filter to user overview view (Admin -> People).
+ */
+function social_geolocation_update_8008(&$sandbox) {
+  _social_geolocation_alter_admin_people_view();
 }

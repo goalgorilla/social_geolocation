@@ -68,6 +68,13 @@ class SocialGeolocationSettings extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('social_geolocation.settings');
 
+    $form['enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Geolocation enabled'),
+      '#description' => $this->t('Whether addresses will be geocoded or not.'),
+      '#default_value' => $config->get('enabled'),
+    ];
+
     $form['geolocation_provider'] = [
       '#type' => 'radios',
       '#title' => $this->t('Provider to use for storing Geolocation data'),
@@ -141,6 +148,7 @@ class SocialGeolocationSettings extends ConfigFormBase {
     parent::submitForm($form, $form_state);
 
     $this->config('social_geolocation.settings')
+      ->set('enabled', $form_state->getValue('enabled'))
       ->set('geolocation_provider', $form_state->getValue('geolocation_provider'))
       ->set('unit_of_measurement', $form_state->getValue('unit_of_measurement'))
       ->save();
